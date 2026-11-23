@@ -354,6 +354,15 @@ main{animation:wnMainIn .35s ease both}
       </ul>
     </article>
     <article class="wn-release">
+      <div class="wn-release-head"><div><span class="wn-tag wn-fixed">FIXED</span><h2>XPapas 2.5.2 · Comunidad reparada</h2></div><span class="wn-date">v2.5.2 · 23/11/2026</span></div>
+      <p class="wn-intro">Se corrigió el alcance de las funciones de la comunidad: ahora están disponibles desde toda la aplicación y no dependen de iniciar sesión previamente para que se cargue la sección.</p>
+      <ul class="wn-list">
+        <li><span class="wn-icon">📰</span><div><strong>Crear publicaciones</strong><small>El botón de crear publicación vuelve a invocar la función correcta.</small></div></li>
+        <li><span class="wn-icon">♥</span><div><strong>Reacciones y eliminación</strong><small>Los botones de Me gusta y eliminar publicación usan referencias globales explícitas.</small></div></li>
+        <li><span class="wn-icon">🛡️</span><div><strong>Sin cambios en la base de datos</strong><small>La corrección es de JavaScript; no requiere ejecutar SQL ni modifica publicaciones existentes.</small></div></li>
+      </ul>
+    </article>
+    <article class="wn-release">
       <div class="wn-release-head"><div><span class="wn-tag wn-new">NEW</span><h2>XPapas 2.5 · La Triple Alianza</h2></div><span class="wn-date">v2.5 · 23/11/2026</span></div>
       <p class="wn-intro">Una expansión enfocada en creadores, comunidad y personalización. HTML, CSS y JavaScript trabajando en equipo.</p>
       <ul class="wn-list">
@@ -1160,6 +1169,10 @@ window.signUp = async function(){
   if(data.session){setText("authStatus","¡Cuenta creada! Ya podés publicar.");}
   else{setText("authStatus","Cuenta creada. Revisá tu correo y confirmá la dirección si Supabase te lo solicita; después ingresá.");}
 };
+window.createCommunityPost=async function(){if(!currentUser){openAuth();return;}const body=prompt("¿Qué querés compartir con la comunidad? (máximo 1000 caracteres)");if(!body?.trim())return;if(body.trim().length>1000){alert("La publicación supera los 1000 caracteres.");return;}const {error}=await supabase.from("community_posts").insert({author_id:currentUser.id,body:body.trim()});if(error){alert("No se pudo publicar: "+error.message);return;}openLibraryView("community");};
+window.toggleCommunityLike=async function(postId,liked){if(!currentUser){openAuth();return;}const q=liked?supabase.from("community_post_likes").delete().eq("post_id",postId).eq("user_id",currentUser.id):supabase.from("community_post_likes").insert({post_id:postId,user_id:currentUser.id});const {error}=await q;if(error){alert("No se pudo actualizar el Me gusta: "+error.message);return;}openLibraryView("community");};
+window.deleteCommunityPost=async function(postId){if(!currentUser||!confirm("¿Eliminar esta publicación?"))return;const {error}=await supabase.from("community_posts").delete().eq("id",postId);if(error){alert("No se pudo eliminar: "+error.message);return;}openLibraryView("community");};
+
 window.signIn = async function(){
   const email=document.getElementById("authEmail").value.trim();
   const password=document.getElementById("authPassword").value;
@@ -1167,10 +1180,6 @@ window.signIn = async function(){
   setText("authStatus","Ingresando...");
   const {error}=await supabase.auth.signInWithPassword({email,password});
   if(error){setText("authStatus","Error: "+error.message);return;}
-  window.createCommunityPost=async function(){if(!currentUser){openAuth();return;}const body=prompt("¿Qué querés compartir con la comunidad? (máximo 1000 caracteres)");if(!body?.trim())return;if(body.trim().length>1000){alert("La publicación supera los 1000 caracteres.");return;}const {error}=await supabase.from("community_posts").insert({author_id:currentUser.id,body:body.trim()});if(error){alert("No se pudo publicar: "+error.message);return;}openLibraryView("community");};
-window.toggleCommunityLike=async function(postId,liked){if(!currentUser){openAuth();return;}const q=liked?supabase.from("community_post_likes").delete().eq("post_id",postId).eq("user_id",currentUser.id):supabase.from("community_post_likes").insert({post_id:postId,user_id:currentUser.id});const {error}=await q;if(error){alert("No se pudo actualizar el Me gusta: "+error.message);return;}openLibraryView("community");};
-window.deleteCommunityPost=async function(postId){if(!currentUser||!confirm("¿Eliminar esta publicación?"))return;const {error}=await supabase.from("community_posts").delete().eq("id",postId);if(error){alert("No se pudo eliminar: "+error.message);return;}openLibraryView("community");};
-
 await refreshSession();
   setText("authStatus","¡Sesión iniciada! Ya podés publicar.");
 };
@@ -1510,13 +1519,13 @@ window.openLibraryView=async function(view){
       const seen=new Set((history||[]).map(x=>x.video_id));const ranked=(all||[]).filter(v=>!seen.has(v.id)).sort((a,b)=>((weights[b.category||"Random"]||0)*10+(Number(b.views)||0)/100+(new Date(b.created_at).getTime()/1e13))-((weights[a.category||"Random"]||0)*10+(Number(a.views)||0)/100+(new Date(a.created_at).getTime()/1e13)));
       xpRenderLibraryVideos(ranked,"Todavía no hay suficientes videos para recomendarte. Explorá algunas categorías primero.");
     }else if(view==="community"){
-      xpAddAction("＋ Crear publicación",createCommunityPost);
+      xpAddAction("＋ Crear publicación",window.createCommunityPost);
       const {data,error}=await supabase.from("community_posts").select("id,author_id,body,created_at").order("created_at",{ascending:false}).limit(100);
       if(error)throw error;const root=document.getElementById("libraryContent");root.replaceChildren();
       if(!data?.length){xpEmpty("Todavía no hay publicaciones. ¡Inaugurá la comunidad!");return;}
       const ids=[...new Set(data.map(x=>x.author_id))];const {data:profiles}=await supabase.from("profiles").select("id,display_name,username,avatar_url").in("id",ids);const pmap=Object.fromEntries((profiles||[]).map(x=>[x.id,x]));
       const {data:likes}=currentUser?await supabase.from("community_post_likes").select("post_id,user_id").in("post_id",data.map(x=>x.id)): {data:[]};
-      data.forEach(post=>{const p=pmap[post.author_id]||{};const card=document.createElement("article");card.className="xp-post";const head=document.createElement("div");head.className="xp-post-head";const img=document.createElement("img");img.src=p.avatar_url||COMMENT_AVATAR_FALLBACK;const who=document.createElement("div");const name=document.createElement("strong");name.textContent=p.display_name||"Usuario de XPapas";const meta=document.createElement("small");meta.textContent="@"+(p.username||"usuario")+" · "+new Date(post.created_at).toLocaleString("es-AR");who.append(name,meta);head.append(img,who);const body=document.createElement("p");body.className="xp-post-body";body.textContent=post.body;const actions=document.createElement("div");actions.className="xp-post-actions";const mine=(likes||[]).some(x=>x.post_id===post.id&&x.user_id===currentUser?.id);const count=(likes||[]).filter(x=>x.post_id===post.id).length;const like=document.createElement("button");like.textContent=(mine?"♥":"♡")+" Me gusta · "+count;like.onclick=()=>toggleCommunityLike(post.id,mine);actions.append(like);if(currentUser?.id===post.author_id||isOwner()){const del=document.createElement("button");del.textContent="Eliminar publicación";del.onclick=()=>deleteCommunityPost(post.id);actions.append(del);}card.append(head,body,actions);root.append(card);});
+      data.forEach(post=>{const p=pmap[post.author_id]||{};const card=document.createElement("article");card.className="xp-post";const head=document.createElement("div");head.className="xp-post-head";const img=document.createElement("img");img.src=p.avatar_url||COMMENT_AVATAR_FALLBACK;const who=document.createElement("div");const name=document.createElement("strong");name.textContent=p.display_name||"Usuario de XPapas";const meta=document.createElement("small");meta.textContent="@"+(p.username||"usuario")+" · "+new Date(post.created_at).toLocaleString("es-AR");who.append(name,meta);head.append(img,who);const body=document.createElement("p");body.className="xp-post-body";body.textContent=post.body;const actions=document.createElement("div");actions.className="xp-post-actions";const mine=(likes||[]).some(x=>x.post_id===post.id&&x.user_id===currentUser?.id);const count=(likes||[]).filter(x=>x.post_id===post.id).length;const like=document.createElement("button");like.textContent=(mine?"♥":"♡")+" Me gusta · "+count;like.onclick=()=>window.toggleCommunityLike(post.id,mine);actions.append(like);if(currentUser?.id===post.author_id||isOwner()){const del=document.createElement("button");del.textContent="Eliminar publicación";del.onclick=()=>window.deleteCommunityPost(post.id);actions.append(del);}card.append(head,body,actions);root.append(card);});
     }else if(view==="studio"){
       const root=document.getElementById("libraryContent");root.replaceChildren();
       const {data:mine,error}=await supabase.from("videos").select("id,title,views,created_at").eq("user_id",currentUser.id).order("created_at",{ascending:false}).limit(100);if(error)throw error;
