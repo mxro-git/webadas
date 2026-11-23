@@ -1,0 +1,1652 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XPapas 🥔</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}
+body{background:#0f0f0f;color:#fff}
+header{height:60px;background:#181818;display:flex;align-items:center;gap:15px;padding:10px 15px;position:sticky;top:0;z-index:20}
+.logo{font-size:23px;font-weight:bold;white-space:nowrap;cursor:pointer;border:0;background:transparent;color:inherit;padding:0;font-family:inherit;text-align:left}.logo-x{color:red;font-size:29px}
+.search{flex:1;display:flex;max-width:600px;margin:auto}
+.search input{width:100%;background:#121212;border:1px solid #333;color:white;padding:11px 15px;border-radius:25px 0 0 25px;outline:none}
+.search button{border:1px solid #333;background:#303030;color:white;padding:0 18px;border-radius:0 25px 25px 0;cursor:pointer}
+.upload-btn,.account-btn{background:white;color:#111;border:0;padding:10px 15px;border-radius:20px;font-weight:bold;cursor:pointer;white-space:nowrap}
+.account-btn{background:#303030;color:white}
+aside{width:210px;min-height:calc(100vh - 60px);background:#181818;padding:15px;position:fixed}
+aside button{width:100%;background:transparent;color:white;border:0;padding:13px 8px;text-align:left;border-radius:10px;cursor:pointer;font-size:15px}
+aside button:hover{background:#303030}
+main{margin-left:210px;width:calc(100% - 210px);padding:20px}
+.chips{display:flex;gap:10px;overflow-x:auto;margin-bottom:25px}
+.chip{background:#303030;border:0;color:white;padding:9px 15px;border-radius:20px;white-space:nowrap;cursor:pointer}
+.videos{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:25px 18px}
+.video-card{cursor:pointer;min-width:0}
+.thumbnail{width:100%;aspect-ratio:16/9;background:linear-gradient(135deg,#4d321d,#b87832);border-radius:10px;display:flex;justify-content:center;align-items:center;font-size:55px;overflow:hidden}
+.thumbnail video{width:100%;height:100%;object-fit:cover;pointer-events:none}
+.video-info{display:flex;gap:10px;margin-top:10px}
+.avatar{width:38px;height:38px;background:#c47b32;border-radius:50%;display:flex;justify-content:center;align-items:center;flex-shrink:0}
+.video-title{font-weight:bold;margin-bottom:5px;overflow-wrap:anywhere}
+.channel,.views{color:#aaa;font-size:13px}
+#playerScreen{display:none;position:fixed;inset:0;background:#000;z-index:100;overflow-y:auto}
+.player-top{height:60px;display:flex;align-items:center;padding:10px 15px;background:#181818}
+.back-button{background:none;border:0;color:white;font-size:25px;cursor:pointer;margin-right:15px}
+.player-logo{font-size:21px;font-weight:bold}
+.custom-player{width:100%;max-width:1100px;margin:25px auto;padding:0 15px}
+.video-wrapper{position:relative;width:100%;background:black;border-radius:10px;overflow:hidden}
+#mainVideo{width:100%;display:block;background:#000;max-height:75vh;aspect-ratio:16/9;object-fit:contain}
+.video-wrapper{aspect-ratio:16/9;max-height:75vh}
+.player-controls{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;gap:10px;padding:34px 14px 12px;background:linear-gradient(transparent,rgba(0,0,0,.92));opacity:0;transition:opacity .2s;z-index:3}
+.video-wrapper:hover .player-controls,.video-wrapper:focus-within .player-controls,.video-wrapper.controls-visible .player-controls{opacity:1}
+.player-control-btn{background:transparent;border:0;color:#fff;font-size:20px;cursor:pointer;padding:5px;min-width:30px}
+.player-control-btn:hover{color:#ff4545}
+.player-time{font-size:12px;color:#fff;white-space:nowrap;font-variant-numeric:tabular-nums}
+#seekBar{flex:1;min-width:40px;accent-color:#f22;cursor:pointer;height:4px}
+#volumeBar{width:76px;accent-color:#f22;cursor:pointer}
+#speedSelect{background:rgba(25,25,25,.9);color:#fff;border:1px solid #777;border-radius:5px;padding:5px;font-size:12px}
+@media(max-width:600px){
+ .player-controls{gap:5px;padding:25px 7px 8px}
+ .player-control-btn{font-size:17px;min-width:25px;padding:3px}
+ .player-time{font-size:10px}
+ #volumeBar{width:48px}
+ #speedSelect{font-size:10px;padding:3px}
+}
+.video-heading{margin-top:18px}.video-heading h1{font-size:22px;margin-bottom:10px}.video-heading p{color:#aaa}.player-description{margin-top:14px;padding:15px;background:#181818;border-radius:10px;color:#ddd;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}.player-description:empty{display:none}
+
+.reactions{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:15px}
+.reaction-btn{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border:1px solid #3b3b3b;border-radius:22px;background:#202020;color:#eee;font-weight:600;cursor:pointer;transition:.15s}
+.reaction-btn:hover{background:#303030;border-color:#666}
+.reaction-btn.active{background:#3b2020;border-color:#f33;color:#fff}
+.reaction-count{color:#bbb;font-variant-numeric:tabular-nums}
+.reaction-status{color:#aaa;font-size:12px;margin-top:7px;min-height:16px}
+
+.genius-btn{padding:5px 10px;gap:10px;overflow:hidden;position:relative}
+.genius-btn img{display:block;width:142px;height:auto;max-height:82px;object-fit:contain;border-radius:7px;background:#fff}
+.genius-btn .reaction-count{padding:0 4px}
+.genius-btn.genio-anim{animation:genioPop .55s cubic-bezier(.2,1.6,.4,1);box-shadow:0 0 0 3px #ffd43b,0 0 28px #ffcf33}
+@keyframes genioPop{0%{transform:scale(1)}35%{transform:scale(1.16) rotate(-2deg)}65%{transform:scale(.96) rotate(2deg)}100%{transform:scale(1)}}
+.genius-btn.genio-anim:after{content:"¡GENIO!";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:clamp(24px,6vw,48px);font-weight:1000;color:#ffe500;text-shadow:2px 3px 0 #000,-2px -2px 0 #000;animation:genioFlash .65s ease-out forwards;pointer-events:none}
+@keyframes genioFlash{0%{opacity:0;transform:scale(.35) rotate(-12deg)}25%{opacity:1;transform:scale(1.12) rotate(4deg)}75%{opacity:1}100%{opacity:0;transform:scale(1.4) rotate(0)}}
+
+@media(max-width:600px){.reactions{gap:7px}.reaction-btn{padding:8px 11px;font-size:13px}}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:200;justify-content:center;align-items:center;padding:20px;overflow-y:auto}
+.modal-box{width:100%;max-width:500px;background:#202020;padding:25px;border-radius:15px;margin:auto}
+.modal-box h2{margin-bottom:18px}
+.modal-box input,.modal-box textarea{width:100%;margin-bottom:12px;padding:12px;border-radius:8px;border:1px solid #444;background:#121212;color:white}
+.modal-box textarea{height:90px;resize:vertical}
+.modal-box input[type=file]{background:#303030}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.modal-actions button{padding:10px 16px;border:0;border-radius:8px;cursor:pointer}
+.cancel{background:#444;color:white}.publish{background:white;color:black;font-weight:bold}
+.status{color:#ccc;font-size:13px;line-height:1.4;margin:4px 0 14px}
+.owner-badge{background:#3a2b08;border:1px solid #d9a928;color:#ffe28a;padding:8px 11px;border-radius:18px;font-size:12px;font-weight:900;white-space:nowrap}.owner-panel{margin:0 0 18px;padding:14px 16px;border:1px solid #b88b25;background:linear-gradient(120deg,#30230b,#191919);border-radius:12px;display:flex;flex-direction:column;gap:5px}.owner-panel strong{color:#ffdf75}.owner-panel span{color:#eee;font-size:14px}.owner-panel small{color:#bdb5a2}.owner-open{align-self:flex-start;margin-top:8px;border:1px solid #d9a928;background:#4a360c;color:#ffe28a;padding:9px 14px;border-radius:8px;font-weight:800;cursor:pointer}.owner-open:hover{background:#62480f}.owner-modal-box{width:100%;max-width:980px;max-height:90vh;overflow:auto;background:#171717;border:1px solid #8e6c20;border-radius:16px;padding:20px;margin:auto}.owner-modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.owner-modal-head h2{margin:0;color:#ffdf75}.owner-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}.owner-tabs button{background:#292929;color:#eee;border:1px solid #444;padding:9px 13px;border-radius:8px;cursor:pointer}.owner-tabs button.active{background:#ffdf75;color:#171717;border-color:#ffdf75;font-weight:900}.owner-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin:14px 0}.owner-stat{background:#242424;border:1px solid #383838;border-radius:10px;padding:14px}.owner-stat strong{display:block;font-size:24px;color:#ffdf75}.owner-stat span{color:#aaa;font-size:12px}.owner-table-wrap{overflow-x:auto}.owner-table{width:100%;border-collapse:collapse;font-size:13px}.owner-table th,.owner-table td{text-align:left;padding:11px 9px;border-bottom:1px solid #333;white-space:nowrap}.owner-table th{color:#ffdf75}.owner-table button{background:#482020;color:#ffdede;border:1px solid #854040;border-radius:6px;padding:6px 9px;cursor:pointer}.owner-muted{color:#aaa;font-size:13px}.owner-close{background:#333;color:#fff;border:0;border-radius:8px;padding:9px 13px;cursor:pointer}.owner-video-tag{display:inline-block;margin-top:6px;color:#ffdf75;font-size:11px;font-weight:800}.owner-delete{margin-top:8px;background:#482020;color:#ffdede;border:1px solid #854040;border-radius:7px;padding:6px 9px;font-size:12px;cursor:pointer}.owner-delete:hover{background:#702828}
+.profile-modal-box{width:100%;max-width:760px;background:#202020;border:1px solid #383838;border-radius:16px;overflow:hidden;margin:auto}
+.profile-banner{height:190px;background:linear-gradient(120deg,#3a245e,#a34242);background-size:cover;background-position:center;position:relative}
+.profile-avatar{width:112px;height:112px;border-radius:50%;border:5px solid #202020;background:#9a622e;object-fit:cover;margin-top:-55px;position:relative;z-index:2}
+.profile-content{padding:0 22px 22px}.profile-name-row{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:8px}
+.profile-name-row{border-left:4px solid var(--channel-accent,#e33333);padding-left:10px}.profile-name-row h2{margin:0;font-size:25px}.profile-handle,.profile-bio,.profile-meta{color:#aaa}
+.profile-bio{white-space:pre-wrap;overflow-wrap:anywhere;margin-top:10px;line-height:1.5}
+.profile-actions{display:flex;gap:9px;flex-wrap:wrap;margin:16px 0}
+.profile-action{background:#333;color:#fff;border:1px solid #555;padding:9px 14px;border-radius:20px;cursor:pointer}
+.profile-action.primary{background:#fff;color:#111;border-color:#fff;font-weight:bold}
+.profile-video-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px;margin-top:14px}
+.profile-video-item{background:#181818;border-radius:10px;overflow:hidden;cursor:pointer}
+.profile-video-item img,.profile-video-item video{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:#333}
+.profile-video-item strong,.profile-video-item small{display:block;padding:0 10px}
+.profile-video-item strong{padding-top:9px;font-size:14px}.profile-video-item small{padding-top:5px;padding-bottom:10px;color:#aaa}
+.profile-edit-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.profile-edit-grid .wide{grid-column:1/-1}.profile-edit-grid label{display:block;color:#bbb;font-size:12px;margin:0 0 6px}
+.profile-edit-grid input,.profile-edit-grid textarea{width:100%;padding:11px;border-radius:8px;border:1px solid #444;background:#121212;color:white;margin-bottom:10px}
+.profile-edit-grid textarea{min-height:85px;resize:vertical}
+.profile-edit-hint{font-size:12px;color:#aaa;line-height:1.4;margin:0 0 12px}
+@media(max-width:600px){.profile-banner{height:135px}.profile-content{padding:0 15px 18px}.profile-avatar{width:92px;height:92px;margin-top:-45px}.profile-edit-grid{grid-template-columns:1fr}.profile-edit-grid .wide{grid-column:auto}}
+
+@media(max-width:700px){.owner-badge{font-size:10px;padding:7px 8px}.owner-panel{padding:12px}}
+@media(max-width:700px){
+ aside{display:none}main{margin-left:0;width:100%;padding:12px}
+ header{gap:8px;padding:8px}.logo{font-size:18px}.logo-x{font-size:23px}
+ .upload-btn,.account-btn{padding:8px 10px;font-size:12px}
+ .videos{grid-template-columns:1fr}.custom-player{padding:0;margin-top:10px}
+}
+
+/* Comentarios XPapas */
+.comments-panel{max-width:1000px;margin:22px auto 40px;padding:18px;background:#191919;border:1px solid #333;border-radius:14px;color:#f5f5f5}
+.comments-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.comments-head h2{margin:0;font-size:21px}
+.comments-tools{display:flex;align-items:center;gap:8px}.comments-tools select,.comment-form textarea,.reply-form textarea{background:#101010;color:#fff;border:1px solid #444;border-radius:9px;padding:10px;font:inherit}
+.comment-form{display:flex;gap:10px;align-items:flex-start;margin:16px 0}.comment-form textarea{flex:1;min-height:72px;resize:vertical}.comment-submit,.comment-action{background:#303030;color:#fff;border:1px solid #505050;border-radius:20px;padding:9px 13px;cursor:pointer;font-weight:700}.comment-submit{background:#f0f0f0;color:#111;border-color:#f0f0f0}.comment-submit:disabled,.comment-action:disabled{opacity:.5;cursor:not-allowed}
+.comment-item{display:flex;gap:11px;padding:14px 0;border-top:1px solid #303030}.comment-avatar{width:38px;height:38px;flex:0 0 38px;border-radius:50%;object-fit:cover;background:#333;cursor:pointer}.comment-main{min-width:0;flex:1}.comment-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;color:#aaa}.comment-author{color:#fff;font-weight:800;cursor:pointer}.comment-owner{font-size:10px;color:#ffe28a;border:1px solid #8b6b20;border-radius:12px;padding:2px 6px}.comment-text{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.5;margin:7px 0 9px}.comment-actions{display:flex;gap:7px;flex-wrap:wrap}.comment-action{font-size:12px;padding:6px 10px}.comment-action.liked{border-color:#d9a928;color:#ffe28a}.comment-children{margin:12px 0 0 16px;padding-left:13px;border-left:2px solid #383838}.comment-empty,.comment-status{color:#aaa;font-size:13px}.comment-delete{color:#ffaaaa;border-color:#754040}.profile-link{cursor:pointer;text-decoration:underline;text-decoration-color:#777;text-underline-offset:3px}.profile-link:hover{color:#ffe28a}.reply-form{display:flex;gap:8px;margin:10px 0}.reply-form textarea{flex:1;min-height:42px;resize:vertical}.comment-count{color:#aaa;font-size:13px}
+@media(max-width:600px){.comments-panel{margin:16px 0 28px;padding:13px;border-radius:10px}.comments-head h2{font-size:18px}.comment-form{flex-direction:column}.comment-form textarea,.reply-form textarea{width:100%;box-sizing:border-box}.comment-submit{align-self:flex-end}.comment-children{margin-left:5px;padding-left:9px}.comment-avatar{width:34px;height:34px;flex-basis:34px}.comments-tools select{max-width:145px}}
+
+
+/* XPapas Motion System: animaciones sutiles y respetuosas */
+:root{--xp-ease:cubic-bezier(.2,.75,.25,1);--xp-fast:160ms;--xp-mid:240ms}
+html{scroll-behavior:smooth}
+body{animation:xpPageIn .38s var(--xp-ease) both}
+header{transition:background var(--xp-mid) var(--xp-ease),box-shadow var(--xp-mid) var(--xp-ease)}
+header:focus-within{box-shadow:0 5px 22px rgba(0,0,0,.22)}
+button,.chip,.profile-action,.video-card,.profile-video-item,.modal-box,.profile-modal-box,.owner-modal-box,.comments-panel,.thumbnail,.avatar,.comment-avatar{transition:transform var(--xp-fast) var(--xp-ease),background-color var(--xp-fast) var(--xp-ease),border-color var(--xp-fast) var(--xp-ease),box-shadow var(--xp-fast) var(--xp-ease),opacity var(--xp-fast) var(--xp-ease)}
+button:active,.chip:active,.profile-action:active{transform:scale(.97)}
+.search input{transition:border-color var(--xp-fast) var(--xp-ease),box-shadow var(--xp-fast) var(--xp-ease)}
+.search input:focus{border-color:#777;box-shadow:0 0 0 3px rgba(255,255,255,.07)}
+.chip:hover{background:#444;transform:translateY(-2px)}
+.video-card{animation:xpCardIn .42s var(--xp-ease) both;transform-origin:center}
+.video-card:hover{transform:translateY(-4px)}
+.video-card:hover .thumbnail,.profile-video-item:hover img{box-shadow:0 12px 28px rgba(0,0,0,.28)}
+.thumbnail{transition:transform var(--xp-mid) var(--xp-ease),box-shadow var(--xp-mid) var(--xp-ease)}
+.video-card:hover .thumbnail{transform:scale(1.012)}
+.avatar,.profile-avatar,.comment-avatar{transition:transform var(--xp-fast) var(--xp-ease),border-color var(--xp-fast) var(--xp-ease)}
+.avatar:hover,.comment-avatar:hover{transform:scale(1.07)}
+aside button{transition:background var(--xp-fast) var(--xp-ease),padding-left var(--xp-fast) var(--xp-ease)}
+aside button:hover{padding-left:14px}
+.reaction-btn:hover,.comment-action:hover,.profile-action:hover{transform:translateY(-2px)}
+.modal[style*="display: flex"],.modal[style*="display:flex"]{animation:xpFadeIn .2s ease both}
+.modal-box,.profile-modal-box,.owner-modal-box{animation:xpModalIn .26s var(--xp-ease) both}
+#playerScreen[style*="display: block"],#playerScreen[style*="display:block"]{animation:xpFadeIn .22s ease both}
+.profile-video-item:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(0,0,0,.24)}
+.comment-item{animation:xpFadeUp .24s var(--xp-ease) both}
+.comment-submit:hover,.upload-btn:hover,.account-btn:hover,.search button:hover{filter:brightness(1.12)}
+button:focus-visible,.chip:focus-visible,.profile-action:focus-visible,.comment-author:focus-visible{outline:2px solid #ffdf75;outline-offset:3px}
+@keyframes xpPageIn{from{opacity:0}to{opacity:1}}
+@keyframes xpFadeIn{from{opacity:0}to{opacity:1}}
+@keyframes xpFadeUp{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+@keyframes xpCardIn{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
+@keyframes xpModalIn{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(hover:none){.video-card:hover,.profile-video-item:hover,.chip:hover{transform:none}.video-card:hover .thumbnail{transform:none}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
+
+
+/* XPapas v2.1 — Motion+ */
+.whats-new-btn{display:flex;align-items:center;gap:6px;white-space:nowrap;background:#292929;color:#fff;border:1px solid #444;border-radius:22px;padding:9px 12px;font-weight:700;cursor:pointer}
+.whats-new-btn:hover{background:#3a3030;border-color:#a44;transform:translateY(-2px)}
+.whats-new-page{max-width:980px;margin:8px auto 42px;animation:wnPageEnter .48s cubic-bezier(.16,1,.3,1) both}
+.wn-hero{position:relative;overflow:hidden;padding:clamp(24px,5vw,48px);border:1px solid #3c3030;border-radius:20px;background:radial-gradient(ellipse at 90% 0%,rgba(220,45,45,.22),transparent 45%),linear-gradient(135deg,#211919,#171717 65%);margin-bottom:18px}
+.wn-hero:after{content:'🥔';position:absolute;right:5%;bottom:-25px;font-size:clamp(76px,13vw,140px);opacity:.10;transform:rotate(-18deg);pointer-events:none;animation:wnFloat 5s ease-in-out infinite}
+.wn-kicker{color:#ff7777;font-size:11px;font-weight:900;letter-spacing:2.5px}
+.wn-hero h1{font-size:clamp(32px,6vw,54px);letter-spacing:-1.8px;margin:12px 0 8px}.wn-hero h1 span{display:inline-block;animation:wnFloat 3.5s ease-in-out infinite}
+.wn-hero p{color:#bbb;font-size:15px;line-height:1.6;max-width:540px}
+.wn-meta{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:22px;color:#aaa;font-size:12px}
+.wn-version{background:#4a2020;color:#ffbaba;border:1px solid #783b3b;border-radius:20px;padding:6px 10px;font-weight:900;letter-spacing:.5px}
+.wn-release{background:#191919;border:1px solid #343434;border-radius:16px;padding:clamp(18px,3vw,26px);margin:15px 0;animation:wnRise .55s cubic-bezier(.16,1,.3,1) both;animation-delay:.08s}
+.wn-previous{animation-delay:.16s}
+.wn-release-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.wn-release h2{font-size:21px;margin-top:9px}.wn-date{color:#888;font-size:12px;padding-top:4px}
+.wn-tag{display:inline-block;font-size:10px;font-weight:900;letter-spacing:1px;border-radius:5px;padding:5px 8px}.wn-new{color:#ffb0b0;background:#4b2020}.wn-improved{color:#ffe0a0;background:#463719}
+.wn-intro{color:#bbb;line-height:1.6;margin:8px 0 16px}
+.wn-list{list-style:none;display:grid;gap:0}.wn-list li{display:flex;gap:13px;align-items:flex-start;padding:14px 0;border-top:1px solid #2c2c2c;transition:padding-left .22s ease,background .22s ease}.wn-list li:hover{padding-left:6px;background:linear-gradient(90deg,rgba(255,255,255,.025),transparent)}
+.wn-icon{width:36px;height:36px;display:grid;place-items:center;flex:0 0 36px;border-radius:10px;background:#292323;font-size:18px}.wn-list strong,.wn-list small{display:block}.wn-list strong{font-size:14px;margin:1px 0 5px}.wn-list small{font-size:12px;color:#999;line-height:1.5}
+.wn-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;color:#999;font-size:13px;padding:12px 3px}.wn-footer button{background:#302424;color:#fff;border:1px solid #563737;border-radius:20px;padding:9px 14px;cursor:pointer}
+/* Transiciones adicionales en toda la interfaz */
+main{animation:wnMainIn .35s ease both}
+.chips{scrollbar-width:thin;scrollbar-color:#555 transparent}
+.chip{transition:transform .22s cubic-bezier(.2,.8,.2,1),background .22s,border-color .22s,box-shadow .22s}
+.video-card:nth-child(2n){animation-delay:.045s}.video-card:nth-child(3n){animation-delay:.09s}.video-card:nth-child(4n){animation-delay:.135s}
+.thumbnail img,.thumbnail video{transition:transform .45s cubic-bezier(.2,.8,.2,1),filter .35s}
+.video-card:hover .thumbnail img,.video-card:hover .thumbnail video{transform:scale(1.045);filter:brightness(1.08)}
+.upload-btn,.account-btn,.search button,.owner-open,.reaction-btn,.comment-submit,.comment-action{transition:transform .2s cubic-bezier(.2,.8,.2,1),filter .2s,box-shadow .2s,background .2s}
+.upload-btn:hover,.owner-open:hover{transform:translateY(-2px);box-shadow:0 7px 20px rgba(255,70,70,.13)}
+.player-controls{transition:opacity .28s ease,transform .28s ease;transform:translateY(5px)}
+.video-wrapper:hover .player-controls,.video-wrapper:focus-within .player-controls,.video-wrapper.controls-visible .player-controls{transform:translateY(0)}
+#seekBar{transition:height .15s ease}#seekBar:hover{height:7px}
+.modal{backdrop-filter:blur(5px)}
+.comment-item{animation:wnRise .3s ease both}
+@keyframes wnPageEnter{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes wnMainIn{from{opacity:.75}to{opacity:1}}
+@keyframes wnRise{from{opacity:0;transform:translateY(13px)}to{opacity:1;transform:translateY(0)}}
+@keyframes wnFloat{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-9px) rotate(3deg)}}
+@media(max-width:700px){.whats-new-btn{padding:8px 9px;font-size:12px}.whats-new-btn span{display:none}.wn-hero{border-radius:14px}.wn-release{border-radius:12px}.wn-date{width:100%}}
+@media(prefers-reduced-motion:reduce){.wn-hero:after,.wn-hero h1 span{animation:none!important}.wn-list li:hover{padding-left:0}}
+
+
+/* XPapas Banana Player: tema especial activable por OWNER */
+.banana-player #videoWrapper{border:2px solid #e5b52d;box-shadow:0 0 0 3px #211707,0 12px 45px rgba(238,183,40,.18)}
+.banana-player .player-top{background:linear-gradient(90deg,#211706,#4b3109);border-bottom:1px solid #a87d1d}
+.banana-player .player-logo{color:#ffd84a}
+.banana-player .video-heading h1{color:#ffd84a}
+.banana-player .player-controls{background:linear-gradient(0deg,rgba(20,13,2,.96),rgba(20,13,2,.12));padding:14px 10px 9px}
+.banana-player #seekBar{accent-color:#ffd23f}
+#bananaSkin{display:none;margin:12px 0 18px;padding:15px;border:1px solid #8d671a;border-radius:16px;background:radial-gradient(circle at 5% 10%,rgba(255,216,74,.18),transparent 32%),linear-gradient(135deg,#201707,#33220a 60%,#17120a);color:#fff3c4;overflow:hidden}
+#bananaSkin .banana-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+#bananaSkin .banana-brand{font-weight:1000;letter-spacing:1px;color:#ffdc4e;font-size:19px;text-shadow:0 2px #69470c}
+#bananaSkin .banana-sub{font-size:10px;letter-spacing:2px;color:#d8b85d;font-weight:800}
+#bananaPhotoStrip{display:flex;gap:9px;overflow-x:auto;padding:5px 1px 10px;scrollbar-width:thin}
+#bananaPhotoStrip img{height:94px;width:116px;object-fit:cover;border-radius:10px;border:2px solid #b58b25;flex:0 0 auto;box-shadow:0 4px 12px #0008}
+#bananaPhotoStrip:empty{display:none}
+.banana-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:8px}
+.banana-action{background:#f4c83f;color:#211707;border:1px solid #ffdf69;border-radius:999px;padding:9px 13px;font-weight:900;cursor:pointer;transition:transform .18s,filter .18s}
+.banana-action:hover{transform:translateY(-2px);filter:brightness(1.08)}
+.banana-quote{font-weight:900;color:#ffe17a;font-size:13px;margin-top:10px;min-height:18px}
+.banana-pop{position:absolute;z-index:8;top:12px;left:12px;background:#f6ce43;color:#261904;padding:7px 10px;border-radius:9px;font-weight:1000;font-size:11px;letter-spacing:1px;transform:rotate(-3deg);box-shadow:0 4px 12px #0008;pointer-events:none}
+#bananaAdminTools{display:none;background:#2b210d;border:1px solid #80601b;border-radius:10px;padding:11px;margin-top:10px;color:#ffe8a1;font-size:12px;line-height:1.5}
+#bananaAdminTools label{display:block;font-weight:800;margin:8px 0 4px}
+#bananaAdminTools input{width:100%;color:#fff}
+@media(max-width:600px){#bananaPhotoStrip img{height:78px;width:96px}.banana-actions .banana-action{font-size:12px;padding:8px 10px}}
+#bananaExistingAdmin{display:none;margin:12px 0;padding:14px;border:1px solid #987321;border-radius:13px;background:linear-gradient(135deg,#241b0a,#171717);color:#ffe7a0}
+#bananaExistingAdmin h3{margin:0 0 8px;color:#ffdc4e;font-size:16px}
+#bananaExistingAdmin label{display:block;margin:10px 0 5px;font-size:13px;font-weight:800}
+#bananaExistingAdmin input[type=file]{display:block;width:100%;max-width:100%;margin-top:5px;color:#fff}
+#bananaExistingAdmin .banana-save{margin-top:12px;background:#f4c83f;color:#211707;border:0;border-radius:9px;padding:10px 14px;font-weight:900;cursor:pointer}
+#bananaExistingStatus{display:block;margin-top:8px;color:#f7d978;font-size:12px;white-space:pre-wrap}
+
+
+/* XPapas 2.4 — Plataforma ampliada */
+:root{--xp-red:#f04444;--xp-panel:#191919;--xp-line:#343434;--xp-muted:#a5a5a5}
+.xp-notify-btn{position:relative;border:1px solid #444;background:#292929;color:#fff;border-radius:22px;padding:9px 12px;cursor:pointer;font-size:16px}
+#notificationBadge{position:absolute;top:-7px;right:-5px;min-width:18px;height:18px;padding:0 5px;border-radius:20px;background:#ed3838;color:#fff;font-size:10px;font-weight:900;display:grid;place-items:center;border:2px solid #181818}
+.xp-feed-toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:-7px 0 18px}
+.xp-feed-toolbar strong,.xp-feed-toolbar small{display:block}.xp-feed-toolbar strong{font-size:18px}.xp-feed-toolbar small{color:var(--xp-muted);font-size:12px;margin-top:4px}
+.xp-select,.xp-feed-toolbar select{background:#242424;color:#fff;border:1px solid #444;border-radius:9px;padding:10px 12px;max-width:100%}
+.chip.active{background:#f0f0f0;color:#111;font-weight:900}
+.xp-library-page{max-width:1100px;margin:0 auto 40px;min-height:45vh;animation:wnPageEnter .35s ease both}
+.xp-library-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;padding:24px;border:1px solid #393939;border-radius:18px;background:radial-gradient(circle at 95% 5%,#522323 0,transparent 38%),#1b1b1b;margin-bottom:18px}
+.xp-eyebrow{font-size:10px;font-weight:900;letter-spacing:2px;color:#ff7777}.xp-library-head h2{font-size:clamp(25px,4vw,36px);margin:8px 0}.xp-library-head p{color:#aaa}.xp-library-back{border:1px solid #555;background:#292929;color:white;border-radius:20px;padding:9px 13px;cursor:pointer}
+.xp-library-actions{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0 18px}
+.xp-action,.xp-library-action{border:1px solid #454545;background:#242424;color:#eee;border-radius:22px;padding:9px 13px;cursor:pointer;font-weight:700}
+.xp-action:hover,.xp-library-action:hover{border-color:#d44;transform:translateY(-1px)}
+.xp-report{color:#ffb1a9}
+.xp-social-status{color:#aaa;font-size:12px;min-height:17px;margin:6px 0}
+.xp-library-list{display:grid;gap:10px}.xp-library-row{display:flex;gap:13px;align-items:center;background:#1b1b1b;border:1px solid #333;border-radius:12px;padding:10px;min-width:0}
+.xp-library-row video,.xp-library-thumb{width:150px;aspect-ratio:16/9;object-fit:cover;background:#303030;border-radius:8px;flex:0 0 auto}
+.xp-library-row-main{min-width:0;flex:1}.xp-library-row-main strong,.xp-library-row-main small{display:block;overflow-wrap:anywhere}.xp-library-row-main small{color:#aaa;margin-top:5px}.xp-library-row button{margin-top:6px}
+.xp-empty{padding:35px 18px;text-align:center;background:#191919;border:1px dashed #444;border-radius:14px;color:#aaa;line-height:1.7}
+.xp-playlist-card,.xp-notification-card{padding:15px;background:#1b1b1b;border:1px solid #333;border-radius:12px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.xp-notification-card.unread{border-color:#9c4444;background:#261919}.xp-notification-card p{color:#ddd}.xp-notification-card small{color:#999}
+.xp-report-status{color:#ffdf75;font-size:11px}
+.xp-category-label{display:inline-block;margin-top:6px;padding:3px 7px;border-radius:5px;background:#292929;color:#bbb;font-size:10px}
+.xp-loading{padding:25px;text-align:center;color:#aaa}
+@media(max-width:700px){
+ .xp-notify-btn{padding:8px 10px}.xp-feed-toolbar{align-items:flex-start}.xp-feed-toolbar select{max-width:135px;padding:8px;font-size:12px}
+ .xp-library-head{padding:18px;border-radius:13px}.xp-library-row{align-items:flex-start;gap:9px}.xp-library-row video,.xp-library-thumb{width:112px}
+ .xp-library-row button{font-size:11px;padding:7px 9px}
+}
+@media(max-width:420px){.xp-library-row video,.xp-library-thumb{width:94px}.xp-library-row-main strong{font-size:13px}}
+@media(min-width:701px){aside{height:calc(100vh - 60px);overflow-y:auto;scrollbar-width:thin;scrollbar-color:#444 transparent}}
+#playerScreen.theater-mode .custom-player{max-width:none;padding:0;margin:0 auto}
+#playerScreen.theater-mode #videoWrapper{max-height:88vh;border-radius:0}
+#playerScreen.theater-mode .video-heading,#playerScreen.theater-mode #commentsPanel{max-width:1100px;margin-left:auto;margin-right:auto;padding-left:15px;padding-right:15px}
+.player-control-btn.control-active{color:#ffdf75;text-shadow:0 0 12px #ffdf75}
+@media(max-width:600px){#loopBtn{display:none}.player-control-btn[aria-label="Imagen en imagen"]{font-size:15px}}
+
+
+/* XPapas 2.5 · Creator tools & community */
+.xp-studio-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:18px 0}.xp-studio-stat{background:linear-gradient(145deg,#242424,#171717);border:1px solid #383838;border-radius:14px;padding:18px}.xp-studio-stat strong{display:block;font-size:27px;color:#ff5555;margin-bottom:6px}.xp-studio-stat span{color:#aaa;font-size:13px}.xp-post-composer{background:#1b1b1b;border:1px solid #383838;border-radius:14px;padding:15px;margin-bottom:18px}.xp-post-composer textarea{width:100%;min-height:95px;background:#111;color:#fff;border:1px solid #444;border-radius:10px;padding:12px;resize:vertical}.xp-post{background:#1b1b1b;border:1px solid #383838;border-radius:14px;padding:16px;margin:12px 0}.xp-post-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}.xp-post-head img{width:38px;height:38px;border-radius:50%;object-fit:cover}.xp-post-head small{display:block;color:#aaa}.xp-post-body{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.5}.xp-post-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}.xp-post-actions button,.xp-studio-action{background:#303030;color:#fff;border:1px solid #484848;border-radius:20px;padding:8px 12px;cursor:pointer}.xp-post-actions button:hover,.xp-studio-action:hover{border-color:#f44}.xp-channel-accent{height:5px;border-radius:5px;margin:10px 0;background:var(--channel-accent,#e33)}
+@media(max-width:600px){.xp-studio-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.xp-studio-stat{padding:13px}.xp-studio-stat strong{font-size:22px}}
+
+</style>
+</head>
+<body>
+<header>
+  <button class="logo" type="button" onclick="goHome()" aria-label="Volver al inicio"><span class="logo-x">X</span>Papas</button>
+  <div class="search">
+    <input id="searchInput" type="text" placeholder="Buscar en XPapas...">
+    <button onclick="searchVideos()">🔍</button>
+  </div>
+  <span id="ownerBadge" class="owner-badge" style="display:none">👑 MXRO · OWNER</span>
+  <button class="whats-new-btn" type="button" onclick="showWhatsNew()" aria-label="Ver novedades">✨ <span>Novedades</span></button>
+  <button class="xp-notify-btn" id="notificationButton" type="button" onclick="openLibraryView('notifications')" aria-label="Notificaciones">🔔<span id="notificationBadge" style="display:none">0</span></button>
+  <button class="account-btn" id="accountButton" onclick="openAccount()">Ingresar</button>
+  <button class="upload-btn" onclick="openUpload()">＋ Subir</button>
+</header>
+
+<aside>
+  <button onclick="showAllVideos()">🏠 Inicio</button>
+  <button onclick="setFeedSort('popular')">🔥 Tendencias</button>
+  <button onclick="openLibraryView('subscriptions')">📺 Suscripciones</button>
+  <button onclick="openAccount()">🥔 Mi canal</button>
+  <button onclick="openLibraryView('liked')">👍 Me gusta</button>
+  <button onclick="openLibraryView('history')">🕘 Historial</button>
+  <button onclick="openLibraryView('saved')">⏰ Ver más tarde</button>
+  <button onclick="openLibraryView('playlists')">📚 Playlists</button>
+  <button onclick="openLibraryView('notifications')">🔔 Notificaciones</button>
+  <button onclick="openLibraryView('community')">📰 Comunidad</button>
+  <button onclick="openLibraryView('recommended')">🧠 Para vos</button>
+  <button onclick="openLibraryView('studio')">🎛️ XPapas Studio</button>
+  <button onclick="showWhatsNew()">✨ Novedades</button>
+</aside>
+
+<main>
+  <section id="ownerPanel" class="owner-panel" style="display:none"><strong>👑 PANEL DE OWNER · MXRO</strong><span>Tu centro de control de XPapas.</span><small>Estadísticas, usuarios, publicaciones y moderación.</small><button class="owner-open" onclick="openOwnerPanel()">⚙️ Abrir panel de administración</button></section>
+  <div class="chips" id="categoryChips">
+    <button class="chip active" data-category="Todo" onclick="filterCategory('Todo')">Todo</button>
+    <button class="chip" data-category="Memes" onclick="filterCategory('Memes')">Memes</button>
+    <button class="chip" data-category="Gaming" onclick="filterCategory('Gaming')">Gaming</button>
+    <button class="chip" data-category="Música" onclick="filterCategory('Música')">Música</button>
+    <button class="chip" data-category="Papas" onclick="filterCategory('Papas')">Papas</button>
+    <button class="chip" data-category="Random" onclick="filterCategory('Random')">Random</button>
+    <button class="chip" data-category="Animación" onclick="filterCategory('Animación')">Animación</button>
+    <button class="chip" data-category="Deportes" onclick="filterCategory('Deportes')">Deportes</button>
+    <button class="chip" data-category="Ciencia" onclick="filterCategory('Ciencia')">Ciencia</button>
+  </div>
+  <div class="xp-feed-toolbar" id="feedToolbar">
+    <div><strong id="feedHeading">Explorar XPapas</strong><small id="feedSubheading">Videos de toda la comunidad</small></div>
+    <select id="feedSort" aria-label="Ordenar videos" onchange="setFeedSort(this.value)">
+      <option value="recent">Más recientes</option><option value="popular">Más vistos</option><option value="oldest">Más antiguos</option>
+    </select>
+  </div>
+  <section id="libraryPage" class="xp-library-page" style="display:none">
+    <div class="xp-library-head"><div><span class="xp-eyebrow">TU ESPACIO</span><h2 id="libraryTitle">Tu biblioteca</h2><p id="libraryDescription">Tu actividad en XPapas.</p></div><button class="xp-library-back" onclick="showAllVideos()">← Explorar</button></div>
+    <div id="libraryActions" class="xp-library-actions"></div>
+    <div id="libraryContent"></div>
+  </section>
+  <div id="videos" class="videos">
+    <div class="video-card" data-category="Papas" onclick="openPlayer('https://www.youtube.com/watch?v=u5joP2XNrzU','Cultivo de papa','XPapas • Demo','Video de demostración','Proceso de cultivo y cosecha de papas.')">
+      <div class="thumbnail"><img src="https://img.youtube.com/vi/u5joP2XNrzU/hqdefault.jpg" alt="Cultivo de papa" style="width:100%;height:100%;object-fit:cover"></div><div class="video-info"><div class="avatar">🥔</div><div><div class="video-title">Cultivo de papa</div><div class="channel">XPapas • Demo</div><div class="views">Video de demostración</div></div></div>
+    </div>
+    <div class="video-card" data-category="Papas" onclick="openPlayer('https://www.youtube.com/watch?v=EJihJUvpDj0','Cosecha de papa','XPapas • Demo','Video de demostración','Registro de una cosecha agrícola.')">
+      <div class="thumbnail"><img src="https://img.youtube.com/vi/EJihJUvpDj0/hqdefault.jpg" alt="Cosecha de papa" style="width:100%;height:100%;object-fit:cover"></div><div class="video-info"><div class="avatar">🥔</div><div><div class="video-title">Cosecha de papa</div><div class="channel">XPapas • Demo</div><div class="views">Video de demostración</div></div></div>
+    </div>
+    <div class="video-card" data-category="Papas" onclick="openPlayer('https://www.youtube.com/watch?v=uGhCeX-VjVc','Producción de papa','XPapas • Demo','Video de demostración','Imágenes del proceso de producción de papa.')">
+      <div class="thumbnail"><img src="https://img.youtube.com/vi/uGhCeX-VjVc/hqdefault.jpg" alt="Producción de papa" style="width:100%;height:100%;object-fit:cover"></div><div class="video-info"><div class="avatar">🥔</div><div><div class="video-title">Producción de papa</div><div class="channel">XPapas • Demo</div><div class="views">Video de demostración</div></div></div>
+    </div>
+  </div>
+  <section id="whatsNewPage" class="whats-new-page" style="display:none" aria-labelledby="whatsNewTitle">
+    <div class="wn-hero">
+      <span class="wn-kicker">XPAPAS · CHANGELOG</span>
+      <h1 id="whatsNewTitle">What's New <span>🥔</span></h1>
+      <p>Las últimas novedades, mejoras y cambios de XPapas.</p>
+      <div class="wn-meta"><span class="wn-version">VERSIÓN 2.5.1</span><span>23 de noviembre de 2026</span></div>
+    </div>
+    <article class="wn-release">
+      <div class="wn-release-head"><div><span class="wn-tag wn-improved">FIXED</span><h2>Insignia de videos de Mxro</h2></div><span class="wn-date">v2.5.1 · 23/11/2026</span></div>
+      <p class="wn-intro">La insignia 👑 VIDEO DE MXRO ahora se asigna por la cuenta propietaria del video, no por su título.</p>
+      <ul class="wn-list">
+        <li><span class="wn-icon">👑</span><div><strong>Identificación automática</strong><small>Todos los videos publicados por Mxro muestran la insignia en las tarjetas y en el reproductor; los videos de otros canales no la reciben.</small></div></li>
+        <li><span class="wn-icon">🔄</span><div><strong>Etiqueta persistente</strong><small>La insignia se conserva cuando se actualiza el contador de reproducciones.</small></div></li>
+      </ul>
+    </article>
+    <article class="wn-release">
+      <div class="wn-release-head"><div><span class="wn-tag wn-new">NEW</span><h2>XPapas 2.5 · La Triple Alianza</h2></div><span class="wn-date">v2.5 · 23/11/2026</span></div>
+      <p class="wn-intro">Una expansión enfocada en creadores, comunidad y personalización. HTML, CSS y JavaScript trabajando en equipo.</p>
+      <ul class="wn-list">
+        <li><span class="wn-icon">🎛️</span><div><strong>XPapas Studio</strong><small>Panel personal de creador con reproducciones, publicaciones, suscriptores, comentarios y reacciones; datos consultados desde Supabase.</small></div></li>
+        <li><span class="wn-icon">📰</span><div><strong>Comunidad de canales</strong><small>Publicaciones de texto en un feed compartido, con autor, fecha y reacciones Me gusta.</small></div></li>
+        <li><span class="wn-icon">🎨</span><div><strong>Identidad visual del canal</strong><small>Color de acento configurable desde el perfil, aplicado a la presentación del canal.</small></div></li>
+        <li><span class="wn-icon">📈</span><div><strong>Resumen de rendimiento</strong><small>Indicadores del canal y listado de videos ordenado por reproducciones para detectar qué funciona mejor.</small></div></li>
+        <li><span class="wn-icon">🛡️</span><div><strong>Permisos y seguridad</strong><small>Tablas nuevas con RLS, políticas por propietario y operaciones limitadas a la cuenta autenticada.</small></div></li>
+        <li><span class="wn-icon">📱</span><div><strong>Vistas adaptables</strong><small>Comunidad y Studio con tarjetas flexibles para escritorio y celular.</small></div></li>
+        <li><span class="wn-icon">🧩</span><div><strong>Integración progresiva</strong><small>La actualización agrega tablas y columnas; no reemplaza ni elimina videos, perfiles, reacciones, comentarios o notificaciones.</small></div></li>
+      </ul>
+    </article>
+    <article class="wn-release">
+      <div class="wn-release-head"><div><span class="wn-tag wn-new">NEW</span><h2>XPapas 2.4 · La comunidad se expande</h2></div><span class="wn-date">v2.4 · 23/11/2026</span></div>
+      <p class="wn-intro">Una actualización grande para convertir XPapas en una plataforma más completa: biblioteca personal, descubrimiento, canales conectados y herramientas de comunidad.</p>
+      <ul class="wn-list">
+        <li><span class="wn-icon">📺</span><div><strong>Suscripciones reales</strong><small>Seguí canales desde sus perfiles, consultá sus publicaciones y recibí avisos cuando suban videos nuevos.</small></div></li>
+        <li><span class="wn-icon">🔔</span><div><strong>Centro de notificaciones</strong><small>Avisos por nuevos videos, nuevos suscriptores, reacciones y respuestas a tus comentarios, con contador de pendientes.</small></div></li>
+        <li><span class="wn-icon">🕘</span><div><strong>Historial de reproducción</strong><small>Biblioteca personal con los videos que empezaste a mirar, sincronizada con tu cuenta.</small></div></li>
+        <li><span class="wn-icon">⏰</span><div><strong>Ver más tarde</strong><small>Guardá publicaciones para volver a ellas y quitá elementos cuando ya no los necesites.</small></div></li>
+        <li><span class="wn-icon">📚</span><div><strong>Playlists personales</strong><small>Creá colecciones privadas, agregá videos y organizá tu biblioteca sin duplicar archivos.</small></div></li>
+        <li><span class="wn-icon">🚩</span><div><strong>Reportes de contenido</strong><small>La comunidad puede informar publicaciones; el OWNER dispone de una bandeja para revisar y resolver reportes sin borrar el contenido automáticamente.</small></div></li>
+        <li><span class="wn-icon">🏷️</span><div><strong>Categorías y descubrimiento</strong><small>Las publicaciones admiten categorías, filtros funcionales y orden por recientes, antiguos o más vistos.</small></div></li>
+        <li><span class="wn-icon">🧑‍🎨</span><div><strong>Avatares en tarjetas</strong><small>El feed aprovecha las fotos de perfil públicas de los canales cuando están disponibles.</small></div></li>
+        <li><span class="wn-icon">🛠️</span><div><strong>Panel OWNER ampliado</strong><small>Nueva pestaña de reportes y herramientas de revisión de la comunidad.</small></div></li>
+        <li><span class="wn-icon">📱</span><div><strong>Interfaz responsive ampliada</strong><small>Nuevas vistas de biblioteca, controles y tarjetas adaptadas a pantallas pequeñas.</small></div></li>
+        <li><span class="wn-icon">🎛️</span><div><strong>Player+ y atajos</strong><small>Modo cine, repetición, imagen en imagen cuando el navegador lo permite y atajos: espacio/K, flechas, M y F.</small></div></li>
+        <li><span class="wn-icon">🧹</span><div><strong>Control del historial</strong><small>Podés consultar y vaciar tu historial sin afectar los videos publicados.</small></div></li>
+        <li><span class="wn-icon">⚡</span><div><strong>Limpieza de carga</strong><small>Se retiró la inicialización cliente de Firebase que no participaba en la app: Firebase Hosting sigue sirviendo el sitio y Supabase mantiene los datos y la autenticación.</small></div></li>
+      </ul>
+      <p class="wn-intro"><strong>FIXED / IMPROVED:</strong> filtros de categorías que antes eran decorativos, navegación de Suscripciones y Me gusta, orden del feed y reinicio correcto al volver a Inicio, estados vacíos, mensajes de error de biblioteca y acceso rápido a secciones personales. Se corrigió la compatibilidad de notificaciones con la estructura existente de Supabase (<code>recipient_id</code>, <code>actor_name</code> y <code>video_title</code>), conservando los registros anteriores.</p>
+      <p class="wn-intro"><strong>CONFIGURACIÓN:</strong> requiere ejecutar el SQL XPapas 2.4 para crear las tablas sociales, activar políticas RLS y añadir la columna de categoría. Los videos, perfiles y notificaciones existentes se conservan.</p>
+    </article>
+    <article class="wn-release">
+      <div class="wn-release-head"><div><span class="wn-tag wn-new">NEW</span><h2>Una experiencia más viva</h2></div><span class="wn-date">v2.1 · 22/11/2026</span></div>
+      <p class="wn-intro">XPapas recibe una renovación visual con animaciones más fluidas y una nueva página para seguir cada actualización.</p>
+      <ul class="wn-list">
+        <li><span class="wn-icon">✨</span><div><strong>Animaciones renovadas</strong><small>Transiciones de página, tarjetas, botones, menús, ventanas y comentarios.</small></div></li>
+        <li><span class="wn-icon">📰</span><div><strong>What's New</strong><small>Una página propia para consultar el historial de novedades.</small></div></li>
+        <li><span class="wn-icon">📱</span><div><strong>Movimiento adaptable</strong><small>Animaciones optimizadas para pantallas táctiles y para quienes prefieren reducir el movimiento.</small></div></li>
+      </ul>
+    </article>
+    <article class="wn-release">
+      <div class="wn-release-head"><div><span class="wn-tag wn-new">NEW</span><h2>Un reproductor fuera de serie</h2></div><span class="wn-date">v2.2 · 23/11/2026</span></div>
+      <p class="wn-intro">Llega un tema especial de reproductor que el OWNER puede activar para publicaciones seleccionadas.</p>
+      <ul class="wn-list">
+        <li><span class="wn-icon">🍌</span><div><strong>Banana Player</strong><small>Interfaz temática exclusiva para los videos elegidos por el OWNER, sin etiquetas de porteo.</small></div></li>
+        <li><span class="wn-icon">📸</span><div><strong>Galería dentro del video</strong><small>Fotos personalizadas que acompañan la reproducción.</small></div></li>
+        <li><span class="wn-icon">🔊</span><div><strong>Sonidos y efectos</strong><small>Efectos originales del reproductor y un espacio para agregar un audio propio.</small></div></li>
+      </ul>
+    </article>
+    <article class="wn-release">
+      <div class="wn-release-head"><div><span class="wn-tag wn-improved">IMPROVED</span><h2>Banana Player también para videos publicados</h2></div><span class="wn-date">v2.3 · 23/11/2026</span></div>
+      <p class="wn-intro">El OWNER ahora puede activar y personalizar el Banana Player en un video que ya está publicado, sin volver a subirlo.</p>
+      <ul class="wn-list">
+        <li><span class="wn-icon">🛠️</span><div><strong>Edición desde el reproductor</strong><small>Activá o desactivá el tema especial directamente en la publicación existente.</small></div></li>
+        <li><span class="wn-icon">📸</span><div><strong>Fotos agregadas después</strong><small>Sumá imágenes a la galería del video sin reemplazar el archivo original.</small></div></li>
+        <li><span class="wn-icon">🔊</span><div><strong>Audio personalizado</strong><small>Agregá un sonido propio; los efectos originales siguen disponibles.</small></div></li>
+      </ul>
+    </article>
+    <article class="wn-release wn-previous">
+      <div class="wn-release-head"><div><span class="wn-tag wn-improved">IMPROVED</span><h2>Mejoras de comunidad</h2></div><span class="wn-date">Actualizaciones anteriores</span></div>
+      <ul class="wn-list">
+        <li><span class="wn-icon">👤</span><div><strong>Perfiles públicos</strong><small>Visitá los canales de otros usuarios y consultá su contenido.</small></div></li>
+        <li><span class="wn-icon">💬</span><div><strong>Comentarios y reacciones</strong><small>Más formas de participar en los videos.</small></div></li>
+        <li><span class="wn-icon">🎬</span><div><strong>Reproductor personalizado</strong><small>Controles propios para los videos subidos a XPapas.</small></div></li>
+      </ul>
+    </article>
+    <div class="wn-footer"><span>🥔 XPapas sigue creciendo.</span><button type="button" onclick="showAllVideos()">← Volver al inicio</button></div>
+  </section>
+  <p id="feedStatus" class="status" style="margin-top:20px"></p>
+</main>
+
+<div id="playerScreen">
+  <div class="player-top"><button class="back-button" onclick="closePlayer()">←</button><button class="player-logo logo" type="button" onclick="goHome()" aria-label="Volver al inicio"><span class="logo-x">X</span>Papas</button></div>
+  <div class="custom-player">
+    <div class="video-wrapper" id="videoWrapper">
+      <video id="mainVideo" playsinline preload="metadata">Tu navegador no puede reproducir este video.</video>
+      <iframe id="youtubePlayer" title="Video de YouTube" style="display:none;width:100%;height:100%;aspect-ratio:16/9;border:0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+      <div class="player-controls" id="playerControls">
+        <button class="player-control-btn" id="playPauseBtn" type="button" aria-label="Reproducir o pausar" onclick="togglePlayback()">▶</button>
+        <span class="player-time" id="currentTime">0:00</span>
+        <input id="seekBar" type="range" min="0" max="1000" value="0" aria-label="Buscar en el video" oninput="seekVideo(this.value)">
+        <span class="player-time" id="durationTime">0:00</span>
+        <button class="player-control-btn" type="button" aria-label="Silenciar o activar sonido" onclick="toggleMute()">🔊</button>
+        <input id="volumeBar" type="range" min="0" max="1" step="0.05" value="1" aria-label="Volumen" oninput="changeVolume(this.value)">
+        <select id="speedSelect" aria-label="Velocidad" onchange="setPlaybackRate(this.value)">
+          <option value="0.5">0.5×</option><option value="0.75">0.75×</option><option value="1" selected>1×</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option><option value="2">2×</option>
+        </select>
+        <button class="player-control-btn" type="button" aria-label="Pantalla completa" title="Pantalla completa (F)" onclick="toggleFullscreen()">⛶</button>
+        <button class="player-control-btn" id="loopBtn" type="button" aria-label="Repetir video" title="Repetir video" onclick="toggleLoop()">🔁</button>
+        <button class="player-control-btn" type="button" aria-label="Imagen en imagen" title="Imagen en imagen" onclick="togglePiP()">▣</button>
+        <button class="player-control-btn" id="theaterBtn" type="button" aria-label="Modo cine" title="Modo cine" onclick="toggleTheaterMode()">▭</button>
+      </div>
+    </div>
+    <section id="bananaSkin" aria-label="Interfaz temática especial">
+      <div class="banana-head"><div><div class="banana-brand">🍌 BANANA PLAYER</div><div class="banana-sub">UNA EXPERIENCIA MUY PARTICULAR</div></div><span>⭐🥔</span></div>
+      <div id="bananaPhotoStrip"></div>
+      <div class="banana-actions"><button class="banana-action" type="button" onclick="bananaSoundEffect('sape')">🍌 ¡SAPEEE!</button><button class="banana-action" type="button" onclick="bananaPlayClip()">🔊 Reproducir audio</button><button class="banana-action" type="button" onclick="bananaRandomPhrase()">🎲 Tirar una frase</button></div>
+      <div class="banana-quote" id="bananaQuote">Prepará los pochoclos, que esto se puso raro.</div>
+      <audio id="bananaClip" preload="none"></audio>
+    </section>
+    <section id="bananaExistingAdmin" aria-label="Herramientas de OWNER para este video">
+      <h3>👑 Personalizar este video</h3>
+      <label><input id="bananaExistingToggle" type="checkbox" style="width:auto;vertical-align:middle"> Activar Banana Player en esta publicación</label>
+      <label for="bananaExistingPhotos">Agregar fotos a la interfaz (hasta 8 en total)</label>
+      <input id="bananaExistingPhotos" type="file" accept="image/png,image/jpeg,image/webp" multiple>
+      <label for="bananaExistingAudio">Agregar o reemplazar sonido personalizado</label>
+      <input id="bananaExistingAudio" type="file" accept="audio/mpeg,audio/mp3,audio/ogg,audio/wav,audio/mp4">
+      <button class="banana-save" id="bananaExistingSave" type="button" onclick="saveBananaSettingsForCurrentVideo()">💾 Guardar cambios en este video</button>
+      <small id="bananaExistingStatus">Estos cambios se aplican a esta publicación; no hace falta volver a subir el video.</small>
+    </section>
+    <div class="video-heading"><h1 id="playerTitle">XPapas</h1><p id="playerInfo">🥔 Canal</p>
+      <div class="reactions" id="reactionBar" style="display:none">
+        <button class="reaction-btn" id="likeBtn" type="button" onclick="sendReaction('like')">👍 Me gusta <span class="reaction-count" id="likeCount">0</span></button>
+        <button class="reaction-btn" id="dislikeBtn" type="button" onclick="sendReaction('dislike')">👎 No me gusta <span class="reaction-count" id="dislikeCount">0</span></button>
+        <button class="reaction-btn genius-btn" id="geniusBtn" type="button" aria-label="Reaccionar GENIO" onclick="playGeniusEffect();sendReaction('genius')"><img src="data:image/jpeg;base64,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" alt="Meme GENIO"><span class="reaction-count" id="geniusCount">0</span></button>
+      </div>
+      <p class="reaction-status" id="reactionStatus"></p>
+      <div class="xp-video-actions" id="videoExtraActions" style="display:none">
+        <button type="button" class="xp-action" id="saveLaterButton" onclick="toggleSaveForLater()">⏰ Guardar para después</button>
+        <button type="button" class="xp-action" onclick="saveCurrentToPlaylist()">📚 Agregar a playlist</button>
+        <button type="button" class="xp-action xp-report" onclick="reportCurrentVideo()">🚩 Reportar</button>
+      </div>
+      <p id="videoSocialStatus" class="xp-social-status" aria-live="polite"></p>
+      <audio id="geniusSound" preload="auto" src="data:audio/mpeg;base64,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"></audio>
+      <div id="playerDescription" class="player-description"></div>
+    <section class="comments-panel" id="commentsPanel" aria-label="Comentarios">
+      <div class="comments-head"><h2>💬 Comentarios <span class="comment-count" id="commentsCount">0</span></h2><div class="comments-tools"><select id="commentsSort" aria-label="Ordenar comentarios" onchange="loadVideoComments()"><option value="recent">Más recientes</option><option value="popular">Más destacados</option></select></div></div>
+      <form class="comment-form" id="commentForm" onsubmit="postVideoComment(event)"><textarea id="commentInput" maxlength="2000" placeholder="Escribí un comentario..." aria-label="Escribí un comentario"></textarea><button class="comment-submit" id="commentSubmit" type="submit">Comentar</button></form>
+      <p class="comment-status" id="commentsStatus">Ingresá a tu cuenta para comentar.</p>
+      <div id="commentsList"></div>
+    </section></div>
+  </div>
+</div>
+
+<div id="uploadModal" class="modal">
+  <div class="modal-box">
+    <h2>🥔 Subir video</h2>
+    <input id="videoTitle" type="text" placeholder="Título del video" maxlength="120">
+    <input id="channelName" type="text" placeholder="Nombre de tu canal" maxlength="60">
+    <select id="videoCategory" class="xp-select" aria-label="Categoría del video">
+      <option value="Random">Categoría: Random</option><option value="Memes">Memes</option><option value="Gaming">Gaming</option><option value="Música">Música</option><option value="Papas">Papas</option><option value="Animación">Animación</option><option value="Deportes">Deportes</option><option value="Ciencia">Ciencia</option>
+    </select>
+    <textarea id="videoDescription" placeholder="Descripción"></textarea>
+    <input id="videoFile" type="file" accept="video/mp4,video/webm,video/quicktime,video/*">
+    <div id="bananaAdminTools">
+      <label><input id="bananaThemeToggle" type="checkbox" style="width:auto;vertical-align:middle"> Activar Banana Player para este video</label>
+      <label for="bananaPhotos">Fotos para la interfaz (podés elegir varias)</label><input id="bananaPhotos" type="file" accept="image/png,image/jpeg,image/webp" multiple>
+      <label for="bananaAudio">Audio/sonido personalizado (opcional)</label><input id="bananaAudio" type="file" accept="audio/mpeg,audio/mp3,audio/ogg,audio/wav,audio/mp4">
+      <small>Usá fotos y audios que tengas permiso para publicar. Los efectos básicos del reproductor funcionan sin archivos extra.</small>
+    </div>
+    <p class="status">La subida requiere una cuenta. En el plan gratuito, el tamaño máximo por archivo puede estar limitado; probá primero con un video pequeño.</p>
+    <div class="modal-actions"><button class="cancel" onclick="closeUpload()">Cancelar</button><button class="publish" id="publishButton" onclick="publishVideo()">Publicar</button></div>
+  </div>
+</div>
+
+
+<div id="profileModal" class="modal">
+  <div class="profile-modal-box">
+    <div id="profileBanner" class="profile-banner"></div>
+    <div class="profile-content">
+      <img id="profileAvatar" class="profile-avatar" alt="Foto de perfil" src="https://placehold.co/120x120/9a622e/ffffff?text=%F0%9F%A5%94">
+      <div class="profile-name-row"><h2 id="profileDisplayName">Mi canal</h2><span id="profileOwnerBadge" class="owner-badge" style="display:none">👑 MXRO · OWNER</span></div>
+      <p id="profileHandle" class="profile-handle">@usuario</p>
+      <p id="profileBio" class="profile-bio">Todavía no hay biografía.</p>
+      <div id="profileStats" class="profile-meta" style="margin-top:12px">🥔 0 videos</div>
+      <div class="profile-actions">
+        <button class="profile-action primary" id="editProfileButton" onclick="openEditProfile()">✏️ Editar perfil</button>
+        <button class="profile-action primary" id="subscribeProfileButton" style="display:none" onclick="toggleProfileSubscription()">＋ Suscribirme</button>
+        <button class="profile-action" onclick="closeProfile()">Cerrar</button>
+      </div>
+      <h3>Videos</h3><div id="profileVideos" class="profile-video-grid"></div>
+      <p id="profileVideoStatus" class="status"></p>
+    </div>
+  </div>
+</div>
+<div id="editProfileModal" class="modal">
+  <div class="modal-box">
+    <h2>✏️ Editar perfil</h2>
+    <div class="profile-edit-grid">
+      <div class="wide"><label for="editDisplayName">Nombre visible</label><input id="editDisplayName" maxlength="40" placeholder="Cómo te van a ver los demás"></div>
+      <div class="wide"><label for="editUsername">Nombre de usuario (@)</label><input id="editUsername" maxlength="20" placeholder="ejemplo_123"></div>
+      <div class="wide"><label for="editBio">Biografía</label><textarea id="editBio" maxlength="180" placeholder="Contá algo sobre tu canal..."></textarea></div>
+      <div class="wide"><label for="editChannelColor">Color de identidad del canal</label><input id="editChannelColor" type="color" value="#e33" style="height:48px;padding:4px"></div>
+      <div><label for="editAvatarFile">Foto de perfil</label><input id="editAvatarFile" type="file" accept="image/png,image/jpeg,image/webp"></div>
+      <div><label for="editBannerFile">Banner del canal</label><input id="editBannerFile" type="file" accept="image/png,image/jpeg,image/webp"></div>
+    </div>
+    <p class="profile-edit-hint">El @usuario debe tener 3–20 caracteres (letras, números o _). Imágenes de hasta 5 MB.</p>
+    <p id="profileEditStatus" class="status"></p>
+    <div class="modal-actions"><button class="cancel" onclick="closeEditProfile()">Cancelar</button><button class="publish" id="saveProfileButton" onclick="saveProfile()">Guardar cambios</button></div>
+  </div>
+</div>
+<div id="ownerModal" class="modal" onclick="if(event.target===this)closeOwnerPanel()">
+  <div class="owner-modal-box">
+    <div class="owner-modal-head"><div><h2>👑 XPapas · OWNER</h2><p class="owner-muted">Sesión administrativa de Mxro</p></div><button class="owner-close" onclick="closeOwnerPanel()">✕ Cerrar</button></div>
+    <div class="owner-tabs"><button class="active" data-owner-tab="overview" onclick="showOwnerTab('overview')">📊 Resumen</button><button data-owner-tab="videos" onclick="showOwnerTab('videos')">🎬 Videos</button><button data-owner-tab="users" onclick="showOwnerTab('users')">👥 Usuarios</button><button data-owner-tab="reports" onclick="showOwnerTab('reports')">🚩 Reportes</button></div>
+    <p id="ownerStatus" class="owner-muted">Cargando datos...</p>
+    <div id="ownerOverview"></div><div id="ownerVideos" style="display:none"></div><div id="ownerUsers" style="display:none"></div><div id="ownerReports" style="display:none"></div>
+  </div>
+</div>
+<div id="authModal" class="modal">
+  <div class="modal-box">
+    <h2>🥔 Cuenta XPapas</h2>
+    <input id="authEmail" type="email" placeholder="Tu correo electrónico" autocomplete="email">
+    <input id="authPassword" type="password" placeholder="Contraseña (mínimo 6 caracteres)" autocomplete="current-password">
+    <p id="authStatus" class="status">Ingresá o creá una cuenta para publicar videos.</p>
+    <div class="modal-actions">
+      <button class="cancel" onclick="closeAuth()">Cerrar</button>
+      <button class="cancel" onclick="signUp()">Crear cuenta</button>
+      <button class="publish" onclick="signIn()">Ingresar</button>
+    </div>
+    <div class="modal-actions" style="margin-top:10px"><button class="cancel" id="signOutButton" style="display:none" onclick="signOutUser()">Cerrar sesión</button></div>
+  </div>
+</div>
+
+<script type="module">
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+/* Estas dos claves son públicas y están preparadas para usarse en el navegador. */
+const SUPABASE_URL = "https://bcpckeymcojplbqohecg.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_phNqyy4LHdlj5zAQMD20iA_RbWNrYQ8";
+const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+const OWNER_UID = "a020ef26-b962-4e70-84e2-a6a06e7aab22";
+let currentProfile = null;
+let profileBeingViewed = null;
+function safeUsername(v){return String(v||"").trim().toLowerCase().replace(/^@/,"");}
+function defaultUsername(){
+  const prefix=(currentUser?.email||"papero").split("@")[0].toLowerCase().replace(/[^a-z0-9_]/g,"").slice(0,12)||"papero";
+  return (prefix+"_"+(currentUser?.id||"").slice(0,4)).slice(0,20);
+}
+async function ensureCurrentProfile(){
+  if(!currentUser){currentProfile=null;return null;}
+  const {data,error}=await supabase.from("profiles").select("*").eq("id",currentUser.id).maybeSingle();
+  if(error){console.warn("No se pudo leer el perfil:",error.message);return null;}
+  if(data){currentProfile=data;return data;}
+  const profile={id:currentUser.id,username:defaultUsername(),display_name:isOwner()?"Mxro":(currentUser.email?.split("@")[0]||"Nuevo usuario"),bio:"",avatar_url:null,banner_url:null};
+  const {data:created,error:createError}=await supabase.from("profiles").upsert(profile,{onConflict:"id"}).select().single();
+  if(createError){console.warn("No se pudo crear el perfil:",createError.message);return null;}
+  currentProfile=created;return created;
+}
+function applyProfileToHeader(){
+  const b=document.getElementById("accountButton");
+  if(!b)return;
+  if(!currentUser){b.textContent="Ingresar";return;}
+  const label=currentProfile?.display_name||"Mi cuenta";
+  b.textContent=label.length>15?label.slice(0,14)+"…":label;
+}
+window.openAccount=function(){if(!currentUser){openAuth();return;}openProfile(currentUser.id);};
+window.closeProfile=function(){document.getElementById("profileModal").style.display="none";};
+window.openProfile=async function(userId){
+  if(!userId&&!currentUser){openAuth();return;}
+  const targetId=userId||currentUser.id, modal=document.getElementById("profileModal");
+  modal.style.display="flex";
+  document.getElementById("profileVideoStatus").textContent="Cargando canal...";
+  document.getElementById("profileVideos").replaceChildren();
+  let p=currentProfile?.id===targetId?currentProfile:null;
+  if(!p){
+    const {data,error}=await supabase.from("profiles").select("*").eq("id",targetId).maybeSingle();
+    if(error){document.getElementById("profileVideoStatus").textContent="No se pudo cargar el perfil.";return;}
+    p=data;
+  }
+  if(!p){document.getElementById("profileVideoStatus").textContent="Este usuario todavía no configuró su perfil.";return;}
+  profileBeingViewed=p;
+  const followButton=document.getElementById("subscribeProfileButton");
+  followButton.style.display=currentUser&&currentUser.id!==targetId?"inline-block":"none";
+  profileSubscriptionState=false;
+  if(currentUser&&currentUser.id!==targetId){
+    const {data:followRow}=await supabase.from("subscriptions").select("channel_id").eq("subscriber_id",currentUser.id).eq("channel_id",targetId).maybeSingle();
+    profileSubscriptionState=!!followRow;
+    followButton.textContent=profileSubscriptionState?"✓ Suscripto":"＋ Suscribirme";
+  }
+  document.getElementById("profileDisplayName").textContent=p.display_name||"Usuario de XPapas";
+  document.getElementById("profileHandle").textContent="@"+(p.username||"usuario");
+  document.getElementById("profileBio").textContent=p.bio||"Todavía no hay biografía.";
+  document.getElementById("profileAvatar").src=p.avatar_url||"https://placehold.co/120x120/9a622e/ffffff?text=%F0%9F%A5%94";
+  document.getElementById("profileBanner").style.backgroundImage=p.banner_url?`url("${p.banner_url}")`:"linear-gradient(120deg,#3a245e,#a34242)";
+  document.getElementById("profileModal").style.setProperty("--channel-accent",/^#[0-9a-f]{6}$/i.test(p.channel_color||"")?p.channel_color:"#e33333");
+  document.getElementById("profileOwnerBadge").style.display=p.id===OWNER_UID?"inline-block":"none";
+  document.getElementById("editProfileButton").style.display=currentUser?.id===targetId?"inline-block":"none";
+  const {data:videos,error:videoError}=await supabase.from("videos").select("id,title,video_url,views,created_at,user_id,channel,description,storage_path,player_theme,player_photos,player_sound_url").eq("user_id",targetId).order("created_at",{ascending:false});
+  if(videoError){document.getElementById("profileVideoStatus").textContent="No se pudieron cargar los videos de este canal.";return;}
+  const {count:followerCount}=await supabase.from("subscriptions").select("subscriber_id",{count:"exact",head:true}).eq("channel_id",targetId);
+  document.getElementById("profileStats").textContent="🥔 "+(videos?.length||0)+" videos publicados · "+(followerCount??0)+" suscriptores";
+  const grid=document.getElementById("profileVideos");
+  (videos||[]).forEach(v=>{
+    const item=document.createElement("div");item.className="profile-video-item";
+    const img=document.createElement("video");img.src=v.video_url;img.muted=true;img.preload="metadata";img.playsInline=true;img.setAttribute("aria-label","Vista previa de "+v.title);
+    const title=document.createElement("strong");title.textContent=v.title;
+    const meta=document.createElement("small");meta.textContent=formatViews(v.views);
+    item.append(img,title,meta);item.addEventListener("click",()=>{closeProfile();window.openPlayer(v);});grid.append(item);
+  });
+  document.getElementById("profileVideoStatus").textContent=videos?.length?"":"Este canal todavía no publicó videos.";
+};
+window.openEditProfile=function(){
+  if(!currentUser)return;
+  const p=currentProfile||{};
+  document.getElementById("editDisplayName").value=p.display_name||"";
+  document.getElementById("editUsername").value=p.username||"";
+  document.getElementById("editBio").value=p.bio||"";
+  document.getElementById("editChannelColor").value=/^#[0-9a-f]{6}$/i.test(p.channel_color||"")?p.channel_color:"#e33333";
+  document.getElementById("editAvatarFile").value="";
+  document.getElementById("editBannerFile").value="";
+  document.getElementById("profileEditStatus").textContent="";
+  document.getElementById("editProfileModal").style.display="flex";
+};
+window.closeEditProfile=function(){document.getElementById("editProfileModal").style.display="none";};
+async function uploadProfileImage(file,kind){
+  if(!file)return null;
+  if(!file.type.startsWith("image/"))throw new Error("Elegí una imagen válida.");
+  if(file.size>5*1024*1024)throw new Error("Cada imagen debe pesar 5 MB o menos.");
+  const ext=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"")||"jpg";
+  const path=`${currentUser.id}/${kind}-${Date.now()}.${ext}`;
+  const {error}=await supabase.storage.from("profile-media").upload(path,file,{upsert:false,contentType:file.type,cacheControl:"3600"});
+  if(error)throw error;
+  return supabase.storage.from("profile-media").getPublicUrl(path).data.publicUrl;
+}
+window.saveProfile=async function(){
+  if(!currentUser)return;
+  const displayName=document.getElementById("editDisplayName").value.trim();
+  const username=safeUsername(document.getElementById("editUsername").value);
+  const bio=document.getElementById("editBio").value.trim();
+  const channelColor=document.getElementById("editChannelColor").value;
+  if(!displayName){setText("profileEditStatus","Poné un nombre visible.");return;}
+  if(!/^[a-z0-9_]{3,20}$/.test(username)){setText("profileEditStatus","El @usuario debe tener 3–20 caracteres: letras, números o _.");return;}
+  const button=document.getElementById("saveProfileButton");button.disabled=true;button.textContent="Guardando...";
+  setText("profileEditStatus","Guardando perfil...");
+  try{
+    const avatarFile=document.getElementById("editAvatarFile").files[0];
+    const bannerFile=document.getElementById("editBannerFile").files[0];
+    const avatarUrl=await uploadProfileImage(avatarFile,"avatar");
+    const bannerUrl=await uploadProfileImage(bannerFile,"banner");
+    const payload={id:currentUser.id,username,display_name:displayName,bio,avatar_url:avatarUrl||currentProfile?.avatar_url||null,banner_url:bannerUrl||currentProfile?.banner_url||null,channel_color:channelColor,updated_at:new Date().toISOString()};
+    const {data,error}=await supabase.from("profiles").upsert(payload,{onConflict:"id"}).select().single();
+    if(error)throw error;
+    currentProfile=data;applyProfileToHeader();closeEditProfile();await openProfile(currentUser.id);
+  }catch(error){setText("profileEditStatus","No se pudo guardar: "+(error.message||"error desconocido"));}
+  finally{button.disabled=false;button.textContent="Guardar cambios";}
+};
+
+function isOwner(){ return !!currentUser && currentUser.id === OWNER_UID; }
+function updateOwnerUI(){
+  const owner=isOwner();
+  const badge=document.getElementById("ownerBadge");
+  const panel=document.getElementById("ownerPanel");
+  if(badge) badge.style.display=owner?"inline-block":"none";
+  if(panel) panel.style.display=owner?"flex":"none";
+}
+
+function ownerEscape(value){return String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;", "'":"&#39;"}[ch]));}
+window.closeOwnerPanel=function(){document.getElementById("ownerModal").style.display="none";};
+window.showOwnerTab=function(tab){
+  if(!isOwner())return;
+  ["overview","videos","users","reports"].forEach(name=>{const panel=document.getElementById("owner"+name[0].toUpperCase()+name.slice(1));if(panel)panel.style.display=name===tab?"block":"none";});
+  document.querySelectorAll("[data-owner-tab]").forEach(button=>button.classList.toggle("active",button.dataset.ownerTab===tab));
+};
+window.openOwnerPanel=async function(){
+  if(!isOwner()){alert("Esta sección es exclusiva del OWNER.");return;}
+  const modal=document.getElementById("ownerModal");modal.style.display="flex";
+  document.getElementById("ownerStatus").textContent="Actualizando estadísticas...";
+  showOwnerTab("overview");
+  try{
+    const [videoCount,profileCount,reactionCount,videosResult,profilesResult]=await Promise.all([
+      supabase.from("videos").select("id",{count:"exact",head:true}),
+      supabase.from("profiles").select("id",{count:"exact",head:true}),
+      supabase.from("video_reactions").select("video_id",{count:"exact",head:true}),
+      supabase.from("videos").select("id,title,channel,views,created_at,storage_path,video_url,user_id").order("created_at",{ascending:false}).limit(100),
+      supabase.from("profiles").select("id,username,display_name,updated_at").order("updated_at",{ascending:false}).limit(100)
+    ]);
+    if(videoCount.error)throw videoCount.error;
+    if(profileCount.error)throw profileCount.error;
+    if(videosResult.error)throw videosResult.error;
+    if(profilesResult.error)throw profilesResult.error;
+    const videos=videosResult.data||[],profiles=profilesResult.data||[];
+    const views=videos.reduce((sum,v)=>sum+(Number(v.views)||0),0);
+    const reactions=reactionCount.error?"—":(reactionCount.count??0);
+    document.getElementById("ownerOverview").innerHTML=`<div class="owner-stats"><div class="owner-stat"><strong>${videoCount.count??videos.length}</strong><span>Videos publicados</span></div><div class="owner-stat"><strong>${profileCount.count??profiles.length}</strong><span>Perfiles registrados</span></div><div class="owner-stat"><strong>${views.toLocaleString("es-AR")}</strong><span>Reproducciones acumuladas*</span></div><div class="owner-stat"><strong>${reactions}</strong><span>Reacciones registradas</span></div></div><p class="owner-muted">*Suma de las vistas de los últimos ${videos.length} videos cargados (máximo 100 en esta vista).</p><p class="owner-muted">Última actualización: ${new Date().toLocaleString("es-AR")}</p>`;
+    document.getElementById("ownerVideos").innerHTML=`<h3>Publicaciones recientes</h3><p class="owner-muted">Mostrando hasta 100 videos. Podés eliminar publicaciones desde acá.</p><div class="owner-table-wrap"><table class="owner-table"><thead><tr><th>Título</th><th>Canal</th><th>Vistas</th><th>Fecha</th><th>Acción</th></tr></thead><tbody>${videos.map(v=>`<tr><td>${ownerEscape(v.title)}</td><td>${ownerEscape(v.channel||"—")}</td><td>${Number(v.views)||0}</td><td>${v.created_at?new Date(v.created_at).toLocaleDateString("es-AR"):"—"}</td><td><button onclick="ownerDeleteVideo('${ownerEscape(v.id)}')">Eliminar</button></td></tr>`).join("")||'<tr><td colspan="5">Todavía no hay videos.</td></tr>'}</tbody></table></div>`;
+    document.getElementById("ownerUsers").innerHTML=`<h3>Perfiles registrados</h3><p class="owner-muted">Por seguridad, esta lista muestra los perfiles públicos de XPapas; no permite cambiar contraseñas ni acceder a datos privados.</p><div class="owner-table-wrap"><table class="owner-table"><thead><tr><th>Nombre</th><th>Usuario</th><th>ID de perfil</th></tr></thead><tbody>${profiles.map(u=>`<tr><td>${ownerEscape(u.display_name||"Sin nombre")}</td><td>@${ownerEscape(u.username||"sin_usuario")}</td><td>${ownerEscape(u.id)}</td></tr>`).join("")||'<tr><td colspan="3">Todavía no hay perfiles.</td></tr>'}</tbody></table></div>`;
+    document.getElementById("ownerStatus").textContent="Datos cargados correctamente.";
+  }catch(error){document.getElementById("ownerStatus").textContent="No se pudo cargar el panel: "+(error.message||"error desconocido")+". Revisá las tablas y permisos de Supabase.";}
+};
+window.ownerDeleteVideo=async function(id){
+  if(!isOwner())return;
+  const {data,error}=await supabase.from("videos").select("id,title,storage_path").eq("id",id).maybeSingle();
+  if(error||!data){alert("No se pudo encontrar el video.");return;}
+  await deleteVideo(data);
+  await openOwnerPanel();
+};
+
+const mainVideo = document.getElementById("mainVideo");
+const videosContainer = document.getElementById("videos");
+const videoWrapper = document.getElementById("videoWrapper");
+const playerControls = document.getElementById("playerControls");
+const seekBar = document.getElementById("seekBar");
+const currentTimeLabel = document.getElementById("currentTime");
+const durationLabel = document.getElementById("durationTime");
+const playPauseBtn = document.getElementById("playPauseBtn");
+
+function timeLabel(seconds){
+  if(!Number.isFinite(seconds)) return "0:00";
+  const m=Math.floor(seconds/60), s=Math.floor(seconds%60);
+  return m+":"+String(s).padStart(2,"0");
+}
+function syncPlayerControls(){
+  const duration=mainVideo.duration||0;
+  const current=mainVideo.currentTime||0;
+  currentTimeLabel.textContent=timeLabel(current);
+  durationLabel.textContent=timeLabel(duration);
+  seekBar.value=duration?String(Math.round(current/duration*1000)):"0";
+  playPauseBtn.textContent=mainVideo.paused?"▶":"Ⅱ";
+  document.getElementById("volumeBar").value=String(mainVideo.muted?0:mainVideo.volume);
+}
+window.togglePlayback=function(){
+  if(mainVideo.paused){mainVideo.play().catch(()=>setText("playerInfo","Tocá reproducir para iniciar el video."));if(document.getElementById("playerScreen").classList.contains("banana-player"))window.bananaSoundEffect("pop");}
+  else{mainVideo.pause();if(document.getElementById("playerScreen").classList.contains("banana-player"))window.bananaSoundEffect("pop");}
+};
+window.seekVideo=function(value){
+  if(Number.isFinite(mainVideo.duration)) mainVideo.currentTime=(Number(value)/1000)*mainVideo.duration;
+};
+window.toggleMute=function(){
+  mainVideo.muted=!mainVideo.muted;
+  syncPlayerControls();
+};
+window.changeVolume=function(value){
+  mainVideo.volume=Number(value);
+  mainVideo.muted=mainVideo.volume===0;
+  syncPlayerControls();
+};
+window.setPlaybackRate=function(value){mainVideo.playbackRate=Number(value)||1;};
+window.toggleFullscreen=function(){
+  if(!document.fullscreenElement){
+    if(videoWrapper.requestFullscreen) videoWrapper.requestFullscreen();
+    else if(mainVideo.webkitEnterFullscreen) mainVideo.webkitEnterFullscreen();
+  }else document.exitFullscreen?.();
+};
+["loadedmetadata","durationchange","timeupdate","play","pause","volumechange","ended"].forEach(eventName=>{
+  mainVideo.addEventListener(eventName,syncPlayerControls);
+});
+mainVideo.addEventListener("click",()=>window.togglePlayback());
+mainVideo.addEventListener("dblclick",()=>window.toggleFullscreen());
+let bananaAudioContext=null;
+window.bananaSoundEffect=function(kind="sape"){
+  try{
+    const AudioCtx=window.AudioContext||window.webkitAudioContext;if(!AudioCtx)return;
+    bananaAudioContext=bananaAudioContext||new AudioCtx();if(bananaAudioContext.state==="suspended")bananaAudioContext.resume();
+    const now=bananaAudioContext.currentTime;const notes=kind==="sape"?[660,880,990]:[440,660];
+    notes.forEach((hz,i)=>{const osc=bananaAudioContext.createOscillator(),gain=bananaAudioContext.createGain();osc.type="square";osc.frequency.setValueAtTime(hz,now+i*.12);gain.gain.setValueAtTime(.0001,now+i*.12);gain.gain.exponentialRampToValueAtTime(.10,now+i*.12+.025);gain.gain.exponentialRampToValueAtTime(.0001,now+i*.12+.16);osc.connect(gain);gain.connect(bananaAudioContext.destination);osc.start(now+i*.12);osc.stop(now+i*.12+.18);});
+  }catch(e){console.warn("No se pudo reproducir el efecto:",e);}
+};
+window.bananaPlayClip=function(){const clip=document.getElementById("bananaClip");if(!clip.src){document.getElementById("bananaQuote").textContent="Todavía no agregaste un audio personalizado.";window.bananaSoundEffect();return;}clip.currentTime=0;clip.play().catch(()=>document.getElementById("bananaQuote").textContent="Tocá de nuevo para permitir el audio.");};
+window.bananaRandomPhrase=function(){const phrases=["¡SE PICÓ EL BANANAL!","Esto está más raro que tutorial de licuadora.","Agarrate, que se viene el despelote.","Una producción de dudosa seriedad.","¡SAPEEE! Que arranque el espectáculo."];document.getElementById("bananaQuote").textContent=phrases[Math.floor(Math.random()*phrases.length)];window.bananaSoundEffect("pop");};
+let currentUser = null;
+let currentVideoData = null;
+let currentReaction = null;
+const countedViewsThisSession = new Set();
+
+function formatViews(value){ return new Intl.NumberFormat("es-AR").format(Number(value)||0)+" "+((Number(value)||0)===1?"vista":"vistas"); }
+function setText(id, value){ document.getElementById(id).textContent = value; }
+
+function renderReactionState(counts){
+  document.getElementById("likeCount").textContent=Number(counts?.likes||0).toLocaleString("es-AR");
+  document.getElementById("dislikeCount").textContent=Number(counts?.dislikes||0).toLocaleString("es-AR");
+  document.getElementById("geniusCount").textContent=Number(counts?.genius||0).toLocaleString("es-AR");
+  ["like","dislike","genius"].forEach(type=>{
+    const btn=document.getElementById(type+"Btn");
+    btn.classList.toggle("active",currentReaction===type);
+    btn.setAttribute("aria-pressed",String(currentReaction===type));
+  });
+}
+async function loadVideoReactions(video){
+  const bar=document.getElementById("reactionBar");
+  const status=document.getElementById("reactionStatus");
+  currentReaction=null;
+  if(!video?.id){bar.style.display="none";status.textContent="";return;}
+  bar.style.display="flex";
+  status.textContent="";
+  renderReactionState({});
+  const {data:counts,error:countError}=await supabase.rpc("get_video_reaction_counts",{p_video_id:video.id});
+  if(countError){status.textContent="No se pudieron cargar las reacciones.";console.warn(countError.message);return;}
+  const totals=Array.isArray(counts)?counts[0]:counts;
+  if(currentVideoData?.id!==video.id)return;
+  renderReactionState(totals||{});
+  if(currentUser){
+    const {data,error}=await supabase.from("video_reactions").select("reaction").eq("video_id",video.id).eq("user_id",currentUser.id).maybeSingle();
+    if(!error && currentVideoData?.id===video.id){
+      currentReaction=data?.reaction||null;
+      renderReactionState(totals||{});
+    }
+  }
+}
+window.playGeniusEffect=function(){
+  const btn=document.getElementById("geniusBtn");
+  const audio=document.getElementById("geniusSound");
+  btn.classList.remove("genio-anim");
+  void btn.offsetWidth;
+  btn.classList.add("genio-anim");
+  setTimeout(()=>btn.classList.remove("genio-anim"),750);
+  if(audio){
+    audio.pause();
+    audio.currentTime=0;
+    audio.play().catch(()=>setText("reactionStatus","El navegador bloqueó el sonido. Revisá el volumen del dispositivo."));
+  }
+};
+window.sendReaction=async function(type){
+  if(!["like","dislike","genius"].includes(type)||!currentVideoData?.id)return;
+  if(!currentUser){
+    setText("reactionStatus","Ingresá a tu cuenta para reaccionar.");
+    openAuth();
+    return;
+  }
+  const videoId=currentVideoData.id;
+  const buttons=["like","dislike","genius"].map(x=>document.getElementById(x+"Btn"));
+  buttons.forEach(b=>b.disabled=true);
+  setText("reactionStatus","Guardando reacción...");
+  try{
+    if(currentReaction===type){
+      const {error}=await supabase.from("video_reactions").delete().eq("video_id",videoId).eq("user_id",currentUser.id);
+      if(error)throw error;
+      currentReaction=null;
+    }else{
+      const {error}=await supabase.from("video_reactions").upsert(
+        {video_id:videoId,user_id:currentUser.id,reaction:type},
+        {onConflict:"video_id,user_id"}
+      );
+      if(error)throw error;
+      currentReaction=type;
+    }
+    const {data,error:countError}=await supabase.rpc("get_video_reaction_counts",{p_video_id:videoId});
+    if(countError)throw countError;
+    if(currentVideoData?.id===videoId){
+      const totals=Array.isArray(data)?data[0]:data;
+      renderReactionState(totals||{});
+      setText("reactionStatus","¡Reacción guardada!");
+    }
+  }catch(error){
+    setText("reactionStatus","No se pudo guardar: "+(error.message||"error desconocido"));
+  }finally{
+    buttons.forEach(b=>b.disabled=false);
+  }
+};
+
+window.saveBananaSettingsForCurrentVideo=async function(){
+  if(!isOwner()||!currentUser||!currentVideoData?.id){alert("Esta herramienta es exclusiva del OWNER y requiere abrir un video publicado.");return;}
+  const status=document.getElementById("bananaExistingStatus");
+  const button=document.getElementById("bananaExistingSave");
+  const enabled=document.getElementById("bananaExistingToggle").checked;
+  const photoInput=document.getElementById("bananaExistingPhotos");
+  const audioInput=document.getElementById("bananaExistingAudio");
+  button.disabled=true;button.textContent="Guardando...";status.textContent="Preparando los archivos...";
+  try{
+    let photos=Array.isArray(currentVideoData.player_photos)?[...currentVideoData.player_photos]:[];
+    const selectedPhotos=[...photoInput.files].filter(file=>file.type.startsWith("image/")).slice(0,Math.max(0,8-photos.length));
+    for(const photo of selectedPhotos){
+      const path=`${currentUser.id}/player-assets/${Date.now()}-${Math.random().toString(36).slice(2)}-${photo.name.replace(/[^a-zA-Z0-9._-]/g,"_")}`;
+      const {error}=await supabase.storage.from("videos").upload(path,photo,{cacheControl:"3600",upsert:false,contentType:photo.type});
+      if(error)throw error;
+      photos.push(supabase.storage.from("videos").getPublicUrl(path).data.publicUrl);
+    }
+    let soundUrl=currentVideoData.player_sound_url||null;
+    const audioFile=audioInput.files[0];
+    if(audioFile){
+      if(!audioFile.type.startsWith("audio/"))throw new Error("Elegí un archivo de audio válido.");
+      const path=`${currentUser.id}/player-assets/${Date.now()}-${audioFile.name.replace(/[^a-zA-Z0-9._-]/g,"_")}`;
+      const {error}=await supabase.storage.from("videos").upload(path,audioFile,{cacheControl:"3600",upsert:false,contentType:audioFile.type});
+      if(error)throw error;
+      soundUrl=supabase.storage.from("videos").getPublicUrl(path).data.publicUrl;
+    }
+    const update={player_theme:enabled?"banana":"classic",player_photos:photos,player_sound_url:soundUrl};
+    const {error}=await supabase.from("videos").update(update).eq("id",currentVideoData.id).eq("user_id",OWNER_UID);
+    if(error)throw error;
+    Object.assign(currentVideoData,update);
+    const active=enabled;
+    document.getElementById("playerScreen").classList.toggle("banana-player",active);
+    document.getElementById("bananaSkin").style.display=active?"block":"none";
+    const strip=document.getElementById("bananaPhotoStrip");strip.replaceChildren();
+    if(active)photos.slice(0,8).forEach(url=>{if(typeof url==="string"&&/^https?:/i.test(url)){const img=document.createElement("img");img.src=url;img.alt="Foto de la galería del reproductor";img.loading="lazy";strip.append(img);}});
+    const clip=document.getElementById("bananaClip");clip.pause();clip.src=soundUrl||"";
+    photoInput.value="";audioInput.value="";
+    status.textContent=active?"¡Listo! Banana Player quedó activado en este video.":"Tema clásico restaurado. Las fotos y el audio quedaron guardados.";
+  }catch(error){status.textContent="No se pudieron guardar los cambios: "+(error.message||"error desconocido")+". Revisá las columnas y las políticas de Storage.";}
+  finally{button.disabled=false;button.textContent="💾 Guardar cambios en este video";}
+};
+
+window.openPlayer = function(videoOrURL,title,channel,views,description){
+  const video = (videoOrURL && typeof videoOrURL === "object") ? videoOrURL : null;
+  const videoURL = video ? video.video_url : videoOrURL;
+  const videoTitle = video ? video.title : title;
+  const videoChannel = video ? video.channel : channel;
+  const youtubePlayer = document.getElementById("youtubePlayer");
+  currentVideoData = video;
+  if(currentUser&&video?.id){supabase.from("watch_history").upsert({user_id:currentUser.id,video_id:video.id,watched_at:new Date().toISOString()},{onConflict:"user_id,video_id"}).then(({error})=>{if(error)console.warn("Historial:",error.message);});}
+  document.getElementById("videoExtraActions").style.display=video?.id?"flex":"none";
+  document.getElementById("videoSocialStatus").textContent="";
+  const bananaMode=!!video && video.player_theme==="banana";
+  const bananaAdmin=document.getElementById("bananaExistingAdmin");
+  bananaAdmin.style.display=video&&isOwner()?"block":"none";
+  document.getElementById("bananaExistingToggle").checked=bananaMode;
+  document.getElementById("bananaExistingPhotos").value="";
+  document.getElementById("bananaExistingAudio").value="";
+  document.getElementById("bananaExistingStatus").textContent=video?"Podés personalizar esta publicación sin volver a subirla.":"Abrí un video publicado para editarlo.";
+  document.getElementById("playerScreen").classList.toggle("banana-player",bananaMode);
+  const bananaSkin=document.getElementById("bananaSkin");
+  bananaSkin.style.display=bananaMode?"block":"none";
+  const photoStrip=document.getElementById("bananaPhotoStrip");photoStrip.replaceChildren();
+  if(bananaMode){
+    (Array.isArray(video.player_photos)?video.player_photos:[]).slice(0,8).forEach(url=>{if(typeof url==="string"&&/^https?:/i.test(url)){const img=document.createElement("img");img.src=url;img.alt="Foto de la galería del reproductor";img.loading="lazy";photoStrip.append(img);}});
+    const clip=document.getElementById("bananaClip");clip.pause();clip.src=video.player_sound_url||"";
+    document.getElementById("bananaQuote").textContent="Prepará los pochoclos, que esto se puso raro.";
+  }else{const clip=document.getElementById("bananaClip");clip.pause();clip.removeAttribute("src");}
+  document.getElementById("playerTitle").textContent = videoTitle || "XPapas";
+  const isOwnerVideo=!!video && video.user_id===OWNER_UID;
+  const playerInfoEl=document.getElementById("playerInfo");
+  renderPlayerInfo(video,videoChannel,views);
+  playerInfoEl.onclick=video?.user_id?()=>window.openProfile(video.user_id):null;
+  playerInfoEl.classList.toggle("profile-link",!!video?.user_id);
+  playerInfoEl.title=video?.user_id?"Abrir el perfil de este canal":"";
+  playerInfoEl.setAttribute("role",video?.user_id?"button":"text");
+  playerInfoEl.setAttribute("tabindex",video?.user_id?"0":"-1");
+  setText("playerDescription",(video?.description || description || "").trim() || "Este video no tiene descripción.");
+  document.getElementById("playerScreen").style.display="block";
+  loadVideoReactions(video);
+  refreshSaveLaterButton();
+  loadVideoComments();
+  watchVideoComments(video?.id);
+  const ytMatch = typeof videoURL === "string" ? videoURL.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/) : null;
+  mainVideo.pause(); mainVideo.removeAttribute("src"); mainVideo.load();
+  if(ytMatch){
+    playerControls.style.display="none";
+    mainVideo.style.display="none";
+    youtubePlayer.style.display="block";
+    youtubePlayer.src="https://www.youtube-nocookie.com/embed/"+ytMatch[1]+"?autoplay=1&rel=0&playsinline=1&controls=1";
+  }else if(typeof videoURL==="string" && /^https?:/i.test(videoURL)){
+    youtubePlayer.src=""; youtubePlayer.style.display="none";
+    mainVideo.style.display="block";
+    playerControls.style.display="flex";
+    mainVideo.src=videoURL; mainVideo.load();
+    syncPlayerControls();
+  }else{
+    youtubePlayer.src=""; youtubePlayer.style.display="none";
+    mainVideo.style.display="block";
+    playerControls.style.display="none";
+    setText("playerInfo","🥔 "+(videoChannel||"Canal")+" • Video de demostración, sin archivo reproducible.");
+  }
+};
+
+// Sistema de comentarios persistentes de XPapas
+let commentsRealtimeChannel=null;
+let commentsSortMode="recent";
+let commentsCache=[];
+const COMMENT_AVATAR_FALLBACK="https://placehold.co/80x80/333333/ffffff?text=%F0%9F%A5%94";
+function commentNode(tag,cls,text){const el=document.createElement(tag);if(cls)el.className=cls;if(text!==undefined)el.textContent=text;return el;}
+function setCommentsStatus(message){const el=document.getElementById("commentsStatus");if(el)el.textContent=message||"";}
+function stopCommentsRealtime(){if(commentsRealtimeChannel){supabase.removeChannel(commentsRealtimeChannel);commentsRealtimeChannel=null;}}
+function watchVideoComments(videoId){
+  stopCommentsRealtime();
+  if(!videoId)return;
+  commentsRealtimeChannel=supabase.channel("xpapas-comments-"+videoId)
+    .on("postgres_changes",{event:"*",schema:"public",table:"video_comments",filter:"video_id=eq."+videoId},()=>{if(currentVideoData?.id===videoId)loadVideoComments(true);})
+    .on("postgres_changes",{event:"*",schema:"public",table:"video_comment_likes"},()=>{if(currentVideoData?.id===videoId)loadVideoComments(true);})
+    .subscribe();
+}
+function renderComments(rows,profiles,likes){
+  const root=document.getElementById("commentsList");root.replaceChildren();
+  const byId=new Map(rows.map(c=>[c.id,{...c,children:[],likeCount:0,liked:false}]));
+  for(const l of likes||[]){const item=byId.get(l.comment_id);if(item){item.likeCount++;if(currentUser&&l.user_id===currentUser.id)item.liked=true;}}
+  const top=[];
+  for(const item of byId.values()){if(item.parent_id&&byId.has(item.parent_id))byId.get(item.parent_id).children.push(item);else top.push(item);}
+  const sortItems=list=>list.sort((a,b)=>commentsSortMode==="popular"?(b.likeCount-a.likeCount||new Date(b.created_at)-new Date(a.created_at)):new Date(b.created_at)-new Date(a.created_at));
+  sortItems(top);for(const item of byId.values())sortItems(item.children);
+  const total=rows.length;document.getElementById("commentsCount").textContent=total.toLocaleString("es-AR");
+  if(!top.length){root.append(commentNode("p","comment-empty","Todavía no hay comentarios. ¡Sé el primero en comentar!"));return;}
+  const makeItem=(item,depth=0)=>{
+    const wrap=commentNode("article","comment-item");
+    const profile=profiles[item.user_id]||{};
+    const avatar=commentNode("img","comment-avatar");avatar.src=profile.avatar_url||COMMENT_AVATAR_FALLBACK;avatar.alt="Avatar de "+(profile.display_name||"usuario");avatar.addEventListener("click",()=>window.openProfile(item.user_id));
+    const main=commentNode("div","comment-main");
+    const meta=commentNode("div","comment-meta");const author=commentNode("span","comment-author",profile.display_name||"Usuario de XPapas");author.addEventListener("click",()=>window.openProfile(item.user_id));meta.append(author);
+    if(item.user_id===OWNER_UID){meta.append(commentNode("span","comment-owner","👑 OWNER"));}
+    const date=new Date(item.created_at);meta.append(commentNode("time","",Number.isNaN(date.getTime())?"":date.toLocaleString("es-AR",{dateStyle:"short",timeStyle:"short"})));
+    const body=commentNode("p","comment-text",item.content);main.append(meta,body);
+    const actions=commentNode("div","comment-actions");
+    const like=commentNode("button","comment-action"+(item.liked?" liked":""),"👍 " + item.likeCount);like.type="button";like.setAttribute("aria-pressed",String(item.liked));like.addEventListener("click",()=>toggleCommentLike(item.id,item.liked));actions.append(like);
+    if(depth===0){const reply=commentNode("button","comment-action","↩ Responder");reply.type="button";reply.addEventListener("click",()=>showReplyForm(item.id,main));actions.append(reply);}
+    if(currentUser&&(item.user_id===currentUser.id||isOwner())){const del=commentNode("button","comment-action comment-delete","Eliminar");del.type="button";del.addEventListener("click",()=>deleteVideoComment(item.id));actions.append(del);}
+    main.append(actions);
+    if(item.children.length){const children=commentNode("div","comment-children");item.children.forEach(child=>children.append(makeItem(child,depth+1)));main.append(children);}
+    wrap.append(avatar,main);return wrap;
+  };
+  top.forEach(item=>root.append(makeItem(item)));
+}
+window.loadVideoComments=async function(silent=false){
+  const videoId=currentVideoData?.id;if(!videoId){document.getElementById("commentsList").replaceChildren();document.getElementById("commentsCount").textContent="0";setCommentsStatus("Los comentarios estarán disponibles en videos publicados en XPapas.");return;}
+  commentsSortMode=document.getElementById("commentsSort").value;
+  if(!silent)setCommentsStatus("Cargando comentarios...");
+  const {data:rows,error}=await supabase.from("video_comments").select("id,video_id,user_id,parent_id,content,created_at").eq("video_id",videoId).order("created_at",{ascending:false}).limit(500);
+  if(error){setCommentsStatus("No se pudieron cargar. Ejecutá primero el SQL de comentarios.");console.warn("Comentarios:",error.message);return;}
+  const ids=[...new Set((rows||[]).map(x=>x.user_id))];const commentIds=(rows||[]).map(x=>x.id);
+  let profiles={},likes=[];
+  if(ids.length){const {data:p,error:pe}=await supabase.from("profiles").select("id,display_name,avatar_url").in("id",ids);if(!pe)(p||[]).forEach(x=>profiles[x.id]=x);}
+  if(commentIds.length){const {data:l,error:le}=await supabase.from("video_comment_likes").select("comment_id,user_id").in("comment_id",commentIds);if(!le)likes=l||[];}
+  if(currentVideoData?.id!==videoId)return;
+  commentsCache=rows||[];renderComments(commentsCache,profiles,likes);setCommentsStatus(currentUser?"": "Ingresá a tu cuenta para comentar y reaccionar.");
+};
+window.postVideoComment=async function(event,parentId=null){
+  event?.preventDefault();if(!currentUser){setCommentsStatus("Ingresá a tu cuenta para comentar.");openAuth();return;}
+  const videoId=currentVideoData?.id;if(!videoId){setCommentsStatus("Este video no admite comentarios.");return;}
+  const input=document.getElementById(parentId?"replyInput-"+parentId:"commentInput");const content=(input?.value||"").trim();if(!content)return;
+  const button=parentId?document.getElementById("replySubmit-"+parentId):document.getElementById("commentSubmit");if(button)button.disabled=true;
+  setCommentsStatus("Publicando comentario...");
+  const {error}=await supabase.from("video_comments").insert({video_id:videoId,user_id:currentUser.id,parent_id:parentId,content});
+  if(error){setCommentsStatus("No se pudo publicar: "+error.message);if(button)button.disabled=false;return;}
+  if(input)input.value="";await loadVideoComments(true);setCommentsStatus("¡Comentario publicado!");
+};
+window.showReplyForm=function(parentId,container){
+  const existing=container.querySelector(".reply-form");if(existing){existing.remove();return;}
+  const form=commentNode("form","reply-form");form.addEventListener("submit",e=>window.postVideoComment(e,parentId));
+  const area=commentNode("textarea");area.id="replyInput-"+parentId;area.maxLength=2000;area.placeholder="Escribí tu respuesta...";area.setAttribute("aria-label","Escribí tu respuesta");
+  const btn=commentNode("button","comment-submit","Responder");btn.type="submit";btn.id="replySubmit-"+parentId;form.append(area,btn);container.append(form);area.focus();
+};
+window.toggleCommentLike=async function(commentId,liked){
+  if(!currentUser){openAuth();setCommentsStatus("Ingresá para dar Me gusta a comentarios.");return;}
+  const action=liked?supabase.from("video_comment_likes").delete().eq("comment_id",commentId).eq("user_id",currentUser.id):supabase.from("video_comment_likes").insert({comment_id:commentId,user_id:currentUser.id});
+  const {error}=await action;if(error){setCommentsStatus("No se pudo guardar el Me gusta: "+error.message);return;}await loadVideoComments(true);
+};
+window.deleteVideoComment=async function(commentId){
+  if(!currentUser)return;
+  if(!confirm("¿Eliminar este comentario?"))return;
+  const {error}=await supabase.from("video_comments").delete().eq("id",commentId);
+  if(error){setCommentsStatus("No se pudo eliminar: "+error.message);return;}await loadVideoComments(true);setCommentsStatus("Comentario eliminado.");
+};
+
+function renderPlayerInfo(video, fallbackChannel="Canal", fallbackViews=""){
+  const ownerVideo=!!video && video.user_id===OWNER_UID;
+  const channel=ownerVideo?"Mxro":(video?.channel||fallbackChannel||"Canal");
+  const count=video?formatViews(Number(video.views)||0):(fallbackViews||"");
+  setText("playerInfo","🥔 "+channel+(count?" • "+count:"")+(ownerVideo?" • 👑 VIDEO DE MXRO":""));
+}
+
+async function registerVideoView(video){
+  if(!video?.id || countedViewsThisSession.has(video.id)) return;
+  countedViewsThisSession.add(video.id);
+  if(currentUser){supabase.from("watch_history").upsert({user_id:currentUser.id,video_id:video.id,watched_at:new Date().toISOString()},{onConflict:"user_id,video_id"}).then(({error})=>{if(error)console.warn("Historial:",error.message);});}
+  const {data,error}=await supabase.rpc("increment_video_views",{p_video_id:video.id});
+  if(error){
+    console.warn("No se pudo registrar la vista:",error.message);
+    countedViewsThisSession.delete(video.id);
+    return;
+  }
+  const total=Number(data)||Number(video.views||0)+1;
+  video.views=total;
+  if(currentVideoData?.id===video.id) renderPlayerInfo(video);
+  const card=document.querySelector(`[data-video-id="${video.id}"] .views`);
+  if(card) card.textContent=formatViews(total)+(video.created_at?" • "+new Date(video.created_at).toLocaleDateString("es-AR"):"");
+}
+mainVideo.addEventListener("playing",()=>registerVideoView(currentVideoData));
+window.closePlayer = function(){
+  mainVideo.pause(); mainVideo.removeAttribute("src"); mainVideo.load();
+  playerControls.style.display="none";
+  const youtubePlayer=document.getElementById("youtubePlayer");
+  youtubePlayer.src=""; youtubePlayer.style.display="none";
+  mainVideo.style.display="block";
+  stopCommentsRealtime();
+  currentVideoData=null;
+  document.getElementById("playerScreen").classList.remove("banana-player","theater-mode");
+  document.getElementById("loopBtn").classList.remove("control-active");mainVideo.loop=false;
+  document.getElementById("bananaSkin").style.display="none";
+  document.getElementById("bananaExistingAdmin").style.display="none";
+  const bananaClip=document.getElementById("bananaClip");bananaClip.pause();bananaClip.removeAttribute("src");
+  document.getElementById("commentsList").replaceChildren();
+  setCommentsStatus("");
+  document.getElementById("reactionBar").style.display="none";
+  document.getElementById("videoExtraActions").style.display="none";
+  document.getElementById("videoSocialStatus").textContent="";
+  document.getElementById("reactionStatus").textContent="";
+  document.getElementById("playerScreen").style.display="none";
+};
+mainVideo.addEventListener("error",()=>{
+  if(mainVideo.currentSrc) setText("playerInfo","No se pudo reproducir. Probá con un MP4 compatible.");
+});
+
+window.openUpload = async function(){
+  if(!currentUser){ openAuth(); setText("authStatus","Primero ingresá o creá una cuenta para poder subir videos."); return; }
+  document.getElementById("channelName").value=currentProfile?.display_name||"";
+  document.getElementById("bananaAdminTools").style.display=isOwner()?"block":"none";
+  document.getElementById("bananaThemeToggle").checked=false;
+  document.getElementById("bananaPhotos").value="";document.getElementById("bananaAudio").value="";
+  document.getElementById("uploadModal").style.display="flex";
+};
+window.closeUpload = ()=>document.getElementById("uploadModal").style.display="none";
+window.openAuth = function(){
+  document.getElementById("authModal").style.display="flex";
+  document.getElementById("signOutButton").style.display=currentUser?"inline-block":"none";
+};
+window.closeAuth = ()=>document.getElementById("authModal").style.display="none";
+
+window.signUp = async function(){
+  const email=document.getElementById("authEmail").value.trim();
+  const password=document.getElementById("authPassword").value;
+  if(!email || password.length<6){setText("authStatus","Ingresá un correo válido y una contraseña de al menos 6 caracteres.");return;}
+  setText("authStatus","Creando cuenta...");
+  const {data,error}=await supabase.auth.signUp({email,password});
+  if(error){setText("authStatus","Error: "+error.message);return;}
+  if(data.session){setText("authStatus","¡Cuenta creada! Ya podés publicar.");}
+  else{setText("authStatus","Cuenta creada. Revisá tu correo y confirmá la dirección si Supabase te lo solicita; después ingresá.");}
+};
+window.signIn = async function(){
+  const email=document.getElementById("authEmail").value.trim();
+  const password=document.getElementById("authPassword").value;
+  if(!email || !password){setText("authStatus","Completá correo y contraseña.");return;}
+  setText("authStatus","Ingresando...");
+  const {error}=await supabase.auth.signInWithPassword({email,password});
+  if(error){setText("authStatus","Error: "+error.message);return;}
+  window.createCommunityPost=async function(){if(!currentUser){openAuth();return;}const body=prompt("¿Qué querés compartir con la comunidad? (máximo 1000 caracteres)");if(!body?.trim())return;if(body.trim().length>1000){alert("La publicación supera los 1000 caracteres.");return;}const {error}=await supabase.from("community_posts").insert({author_id:currentUser.id,body:body.trim()});if(error){alert("No se pudo publicar: "+error.message);return;}openLibraryView("community");};
+window.toggleCommunityLike=async function(postId,liked){if(!currentUser){openAuth();return;}const q=liked?supabase.from("community_post_likes").delete().eq("post_id",postId).eq("user_id",currentUser.id):supabase.from("community_post_likes").insert({post_id:postId,user_id:currentUser.id});const {error}=await q;if(error){alert("No se pudo actualizar el Me gusta: "+error.message);return;}openLibraryView("community");};
+window.deleteCommunityPost=async function(postId){if(!currentUser||!confirm("¿Eliminar esta publicación?"))return;const {error}=await supabase.from("community_posts").delete().eq("id",postId);if(error){alert("No se pudo eliminar: "+error.message);return;}openLibraryView("community");};
+
+await refreshSession();
+  setText("authStatus","¡Sesión iniciada! Ya podés publicar.");
+};
+window.signOutUser = async function(){
+  const {error}=await supabase.auth.signOut();
+  if(error){setText("authStatus","Error: "+error.message);return;}
+  await refreshSession();
+  setText("authStatus","Sesión cerrada.");
+};
+
+async function refreshSession(){
+  const {data}=await supabase.auth.getSession();
+  currentUser=data.session?.user||null;
+  document.getElementById("signOutButton").style.display=currentUser?"inline-block":"none";
+  updateOwnerUI();
+  if(currentUser)await ensureCurrentProfile();else currentProfile=null;
+  applyProfileToHeader();
+  startNotificationRealtime();
+}
+supabase.auth.onAuthStateChange(async (_event,session)=>{
+  currentUser=session?.user||null;
+  document.getElementById("signOutButton").style.display=currentUser?"inline-block":"none";
+  updateOwnerUI();
+  if(currentUser)await ensureCurrentProfile();else currentProfile=null;
+  applyProfileToHeader();
+  startNotificationRealtime();
+  if(_event!=="INITIAL_SESSION")loadVideos();
+});
+
+async function deleteVideo(video){
+  if(!isOwner()){alert("Esta acción es exclusiva del OWNER.");return;}
+  if(!confirm(`¿Eliminar definitivamente “${video.title}”?`))return;
+  try{
+    const {error}=await supabase.from("videos").delete().eq("id",video.id);
+    if(error)throw error;
+    if(video.storage_path){
+      const {error:storageError}=await supabase.storage.from("videos").remove([video.storage_path]);
+      if(storageError)console.warn("El registro se eliminó, pero el archivo quedó en Storage:",storageError.message);
+    }
+    await loadVideos();
+  }catch(error){alert("No se pudo eliminar: "+(error.message||"error desconocido"));}
+}
+
+function addVideoCard(video,target=videosContainer){
+  const card=document.createElement("div"); card.className="video-card database-video"; card.dataset.videoId=video.id;card.dataset.category=video.category||"Random";
+  card.addEventListener("click",()=>window.openPlayer(video));
+  const thumb=document.createElement("div"); thumb.className="thumbnail";
+  const preview=document.createElement("video"); preview.src=video.video_url; preview.muted=true; preview.preload="metadata"; preview.playsInline=true;
+  thumb.appendChild(preview);
+  const info=document.createElement("div"); info.className="video-info";
+  const avatar=document.createElement("div"); avatar.className="avatar";
+  if(video.profile_avatar){const image=document.createElement("img");image.src=video.profile_avatar;image.alt="";image.style.cssText="width:100%;height:100%;object-fit:cover;border-radius:50%";avatar.replaceChildren(image);}else avatar.textContent="🥔";
+  const details=document.createElement("div");
+  const title=document.createElement("div"); title.className="video-title"; title.textContent=video.title;
+  const isOwnerVideo=video.user_id===OWNER_UID;
+  const channel=document.createElement("div"); channel.className="channel"; channel.textContent=(isOwnerVideo?"Mxro":video.channel);
+  if(video.user_id){
+    avatar.style.cursor="pointer";avatar.title="Ver perfil del canal";
+    channel.classList.add("profile-link");channel.title="Ver perfil del canal";
+    const goToProfile=event=>{event.stopPropagation();window.openProfile(video.user_id);};
+    avatar.addEventListener("click",goToProfile);channel.addEventListener("click",goToProfile);
+  }
+  if(isOwnerVideo){const tag=document.createElement("div");tag.className="owner-video-tag";tag.textContent="👑 VIDEO DE MXRO";details.append(title,channel,tag);}
+  const category=document.createElement("span");category.className="xp-category-label";category.textContent=video.category||"Random";
+  const views=document.createElement("div"); views.className="views";
+  const date=video.created_at?new Date(video.created_at).toLocaleDateString("es-AR"):"";
+  views.textContent=formatViews(video.views)+(date?" • "+date:"");
+  if(!isOwnerVideo)details.append(title,channel);
+  details.append(views,category);
+  if(isOwner()&&target===videosContainer){const del=document.createElement("button");del.className="owner-delete";del.type="button";del.textContent="🗑 Eliminar video";del.addEventListener("click",event=>{event.stopPropagation();deleteVideo(video);});details.append(del);}
+  info.append(avatar,details); card.append(thumb,info);
+  target.append(card);
+}
+
+let feedVideosCache=[];
+let activeCategory="Todo";
+let activeFeedSort="recent";
+async function loadVideos(){
+  setText("feedStatus","Cargando videos de XPapas...");
+  videosContainer.querySelectorAll(".database-video").forEach(card=>card.remove());
+  const {data,error}=await supabase.from("videos").select("id,title,channel,description,video_url,storage_path,user_id,views,created_at,player_theme,player_photos,player_sound_url,category").order("created_at",{ascending:false});
+  if(error){setText("feedStatus","No se pudieron cargar los videos: "+error.message);return;}
+  feedVideosCache=data||[];
+  const userIds=[...new Set(feedVideosCache.map(v=>v.user_id).filter(Boolean))];
+  if(userIds.length){
+    const {data:profiles}=await supabase.from("profiles").select("id,avatar_url").in("id",userIds);
+    const avatarMap=Object.fromEntries((profiles||[]).map(p=>[p.id,p.avatar_url]));
+    feedVideosCache.forEach(v=>v.profile_avatar=avatarMap[v.user_id]||null);
+  }
+  feedVideosCache.forEach(v=>addVideoCard(v));
+  setText("feedStatus",feedVideosCache.length?`🥔 ${feedVideosCache.length} video(s) cargado(s) desde XPapas.`:"Todavía no hay videos publicados por la comunidad.");
+  applyFeedFilters();
+}
+window.filterCategory=function(category){
+  activeCategory=category||"Todo";
+  document.querySelectorAll("#categoryChips .chip").forEach(b=>b.classList.toggle("active",b.dataset.category===activeCategory));
+  applyFeedFilters();
+};
+window.setFeedSort=function(sort){
+  if(document.getElementById("libraryPage").style.display!=="none"||document.getElementById("whatsNewPage").style.display!=="none")window.showAllVideos();
+  activeFeedSort=sort||"recent";
+  const select=document.getElementById("feedSort");if(select&&select.value!==activeFeedSort)select.value=activeFeedSort;
+  if(activeFeedSort==="popular")feedVideosCache.sort((a,b)=>(Number(b.views)||0)-(Number(a.views)||0));
+  else if(activeFeedSort==="oldest")feedVideosCache.sort((a,b)=>new Date(a.created_at||0)-new Date(b.created_at||0));
+  else feedVideosCache.sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
+  videosContainer.querySelectorAll(".database-video").forEach(card=>card.remove());
+  feedVideosCache.forEach(v=>addVideoCard(v));
+  const heading=document.getElementById("feedHeading");
+  if(heading)heading.textContent=activeFeedSort==="popular"?"Tendencias":activeFeedSort==="oldest"?"Videos antiguos":"Explorar XPapas";
+  applyFeedFilters();
+};
+function applyFeedFilters(){
+  const term=(document.getElementById("searchInput")?.value||"").trim().toLowerCase();
+  let visible=0;
+  document.querySelectorAll("#videos .video-card").forEach(card=>{
+    const category=card.dataset.category||"Papas";
+    const categoryMatch=activeCategory==="Todo"||category===activeCategory;
+    const textMatch=!term||card.innerText.toLowerCase().includes(term);
+    card.style.display=categoryMatch&&textMatch?"":"none";
+    if(categoryMatch&&textMatch)visible++;
+  });
+  const status=document.getElementById("feedStatus");
+  if(status&&feedVideosCache.length)status.textContent=visible?`${visible} video(s) encontrados.`:"No hay videos que coincidan con esta búsqueda.";
+}
+
+window.publishVideo = async function(){
+  if(!currentUser){closeUpload();openAuth();setText("authStatus","Ingresá para publicar un video.");return;}
+  const title=document.getElementById("videoTitle").value.trim();
+  const channel=document.getElementById("channelName").value.trim();
+  const description=document.getElementById("videoDescription").value.trim();
+  const category=document.getElementById("videoCategory").value||"Random";
+  const file=document.getElementById("videoFile").files[0];
+  if(!title||!channel||!file){alert("Completá el título, el canal y elegí un video 🥔");return;}
+  if(!file.type.startsWith("video/")){alert("Elegí un archivo de video.");return;}
+  if(file.size>50*1024*1024){alert("Este archivo supera los 50 MB. Elegí uno más pequeño para esta prueba.");return;}
+
+  const button=document.getElementById("publishButton");
+  button.disabled=true;button.textContent="Subiendo...";
+  try{
+    const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,"_");
+    const storagePath=`${currentUser.id}/${Date.now()}-${safeName}`;
+    const {error:uploadError}=await supabase.storage.from("videos").upload(storagePath,file,{cacheControl:"3600",upsert:false,contentType:file.type});
+    if(uploadError) throw uploadError;
+
+    const {data:urlData}=supabase.storage.from("videos").getPublicUrl(storagePath);
+    let playerPhotos=[];let playerSoundUrl=null;let playerTheme="classic";
+    if(isOwner()&&document.getElementById("bananaThemeToggle").checked){
+      playerTheme="banana";
+      const photoFiles=[...document.getElementById("bananaPhotos").files].slice(0,8);
+      for(const photo of photoFiles){
+        if(!photo.type.startsWith("image/"))continue;
+        const photoPath=`${currentUser.id}/player-assets/${Date.now()}-${Math.random().toString(36).slice(2)}-${photo.name.replace(/[^a-zA-Z0-9._-]/g,"_")}`;
+        const {error:photoError}=await supabase.storage.from("videos").upload(photoPath,photo,{cacheControl:"3600",upsert:false,contentType:photo.type});
+        if(photoError)throw photoError;
+        playerPhotos.push(supabase.storage.from("videos").getPublicUrl(photoPath).data.publicUrl);
+      }
+      const audioFile=document.getElementById("bananaAudio").files[0];
+      if(audioFile&&audioFile.type.startsWith("audio/")){
+        const audioPath=`${currentUser.id}/player-assets/${Date.now()}-${audioFile.name.replace(/[^a-zA-Z0-9._-]/g,"_")}`;
+        const {error:audioError}=await supabase.storage.from("videos").upload(audioPath,audioFile,{cacheControl:"3600",upsert:false,contentType:audioFile.type});
+        if(audioError)throw audioError;
+        playerSoundUrl=supabase.storage.from("videos").getPublicUrl(audioPath).data.publicUrl;
+      }
+    }
+    const {error:insertError}=await supabase.from("videos").insert({
+      title,channel,description,category,video_url:urlData.publicUrl,storage_path:storagePath,user_id:currentUser.id,
+      player_theme:playerTheme,player_photos:playerPhotos,player_sound_url:playerSoundUrl
+    });
+    if(insertError){
+      await supabase.storage.from("videos").remove([storagePath]);
+      throw insertError;
+    }
+
+    closeUpload();
+    document.getElementById("videoCategory").value="Random";
+    ["videoTitle","channelName","videoDescription","videoFile","bananaPhotos","bananaAudio"].forEach(id=>document.getElementById(id).value="");document.getElementById("bananaThemeToggle").checked=false;
+    await loadVideos();
+    alert("🥔 ¡Video publicado! Ya está guardado online.");
+  }catch(error){
+    alert("No se pudo publicar: "+(error.message||"Error desconocido")+". Revisá tu sesión y las políticas de Supabase.");
+  }finally{
+    button.disabled=false;button.textContent="Publicar";
+  }
+};
+
+window.searchVideos=function(){applyFeedFilters();};
+document.getElementById("searchInput").addEventListener("keydown",event=>{if(event.key==="Enter")applyFeedFilters();});
+window.showAllVideos=function(){
+  activeFeedSort="recent";const sortControl=document.getElementById("feedSort");if(sortControl)sortControl.value="recent";
+  const feedHeading=document.getElementById("feedHeading");if(feedHeading)feedHeading.textContent="Explorar XPapas";
+  if(typeof feedVideosCache!=="undefined"&&feedVideosCache.length){feedVideosCache.sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));videosContainer.querySelectorAll(".database-video").forEach(card=>card.remove());feedVideosCache.forEach(v=>addVideoCard(v));}
+  document.getElementById("whatsNewPage").style.display="none";
+  document.getElementById("libraryPage").style.display="none";
+  document.getElementById("feedToolbar").style.display="";
+  document.querySelector(".chips").style.display="";
+  document.getElementById("videos").style.display="";
+  document.getElementById("feedStatus").style.display="";
+  const ownerPanel=document.getElementById("ownerPanel");if(ownerPanel)ownerPanel.style.display=isOwner()?"flex":"none";
+  document.querySelectorAll(".video-card").forEach(card=>card.style.display="");
+  document.getElementById("searchInput").value="";
+  activeCategory="Todo";document.querySelectorAll("#categoryChips .chip").forEach(b=>b.classList.toggle("active",b.dataset.category==="Todo"));
+  window.scrollTo({top:0,behavior:"smooth"});
+};
+window.showWhatsNew=function(){
+  if(document.getElementById("playerScreen").style.display!=="none")window.closePlayer();
+  ["profileModal","editProfileModal","ownerModal","uploadModal","authModal"].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display="none";});
+  const ownerPanel=document.getElementById("ownerPanel");if(ownerPanel)ownerPanel.style.display="none";
+  document.querySelector(".chips").style.display="none";
+  document.getElementById("feedToolbar").style.display="none";
+  document.getElementById("libraryPage").style.display="none";
+  document.getElementById("videos").style.display="none";
+  document.getElementById("feedStatus").style.display="none";
+  const page=document.getElementById("whatsNewPage");page.style.display="block";
+  page.style.animation="none";void page.offsetWidth;page.style.animation="";
+  window.scrollTo({top:0,behavior:"smooth"});
+};
+window.goHome=function(){
+  // Cierra cualquier vista superpuesta y vuelve al catálogo principal.
+  if(document.getElementById("playerScreen").style.display!=="none") window.closePlayer();
+  ["profileModal","editProfileModal","ownerModal","uploadModal","authModal"].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.style.display="none";
+  });
+  window.showAllVideos();
+  window.scrollTo({top:0,behavior:"smooth"});
+};
+
+
+/* XPapas Player+ — atajos, repetición, PiP y modo cine */
+window.toggleLoop=function(){
+  mainVideo.loop=!mainVideo.loop;
+  const button=document.getElementById("loopBtn");button.classList.toggle("control-active",mainVideo.loop);
+  button.title=mainVideo.loop?"Repetición activada":"Repetir video";
+};
+window.togglePiP=async function(){
+  if(!document.pictureInPictureEnabled||!mainVideo.requestPictureInPicture){setText("videoSocialStatus","Imagen en imagen no está disponible en este navegador o video.");return;}
+  try{if(document.pictureInPictureElement)await document.exitPictureInPicture();else await mainVideo.requestPictureInPicture();}
+  catch(error){setText("videoSocialStatus","No se pudo activar PiP: "+error.message);}
+};
+window.toggleTheaterMode=function(){
+  const player=document.getElementById("playerScreen");const active=player.classList.toggle("theater-mode");
+  const button=document.getElementById("theaterBtn");button.classList.toggle("control-active",active);button.title=active?"Salir del modo cine":"Modo cine";
+};
+document.addEventListener("keydown",event=>{
+  const screen=document.getElementById("playerScreen");
+  if(!screen||screen.style.display==="none"||event.altKey||event.ctrlKey||event.metaKey)return;
+  if(["INPUT","TEXTAREA","SELECT"].includes(document.activeElement?.tagName)||document.querySelector(".modal[style*='display: flex']"))return;
+  if(mainVideo.style.display==="none")return;
+  const key=event.key.toLowerCase();
+  if(key===" "||key==="k"){event.preventDefault();window.togglePlayback();}
+  else if(key==="arrowleft"){event.preventDefault();if(Number.isFinite(mainVideo.duration))mainVideo.currentTime=Math.max(0,mainVideo.currentTime-5);}
+  else if(key==="arrowright"){event.preventDefault();if(Number.isFinite(mainVideo.duration))mainVideo.currentTime=Math.min(mainVideo.duration,mainVideo.currentTime+5);}
+  else if(key==="m"){event.preventDefault();window.toggleMute();}
+  else if(key==="f"){event.preventDefault();window.toggleFullscreen();}
+});
+/* XPapas 2.4 — Comunidad, biblioteca, notificaciones y descubrimiento */
+let profileSubscriptionState=false;
+let notificationChannel=null;
+let currentLibraryView="";
+
+function xpSetLibrary(title,description){
+  document.getElementById("whatsNewPage").style.display="none";
+  document.querySelector(".chips").style.display="none";
+  document.getElementById("feedToolbar").style.display="none";
+  document.getElementById("videos").style.display="none";
+  document.getElementById("feedStatus").style.display="none";
+  document.getElementById("ownerPanel").style.display="none";
+  const page=document.getElementById("libraryPage");page.style.display="block";
+  document.getElementById("libraryTitle").textContent=title;
+  document.getElementById("libraryDescription").textContent=description;
+  document.getElementById("libraryContent").innerHTML='<div class="xp-loading">Cargando tu biblioteca...</div>';
+  document.getElementById("libraryActions").replaceChildren();
+  currentLibraryView=title;
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function xpEmpty(message){document.getElementById("libraryContent").innerHTML=`<div class="xp-empty">🥔<br>${message}</div>`;}
+function xpAddAction(label,fn){const b=document.createElement("button");b.className="xp-library-action";b.type="button";b.textContent=label;b.addEventListener("click",fn);document.getElementById("libraryActions").append(b);}
+async function xpFetchVideosByIds(ids){
+  const unique=[...new Set((ids||[]).filter(Boolean))];if(!unique.length)return [];
+  const {data,error}=await supabase.from("videos").select("id,title,channel,description,video_url,user_id,views,created_at,category,player_theme,player_photos,player_sound_url").in("id",unique);
+  if(error)throw error;
+  const map=new Map((data||[]).map(v=>[v.id,v]));
+  return unique.map(id=>map.get(id)).filter(Boolean);
+}
+function xpRenderLibraryVideos(videos,emptyMessage="Todavía no hay videos en esta sección."){
+  const root=document.getElementById("libraryContent");root.replaceChildren();
+  if(!videos.length){root.innerHTML=`<div class="xp-empty">🥔<br>${emptyMessage}</div>`;return;}
+  const grid=document.createElement("div");grid.className="videos";
+  videos.forEach(v=>addVideoCard(v,grid));root.append(grid);
+}
+window.openLibraryView=async function(view){
+  if(!currentUser){openAuth();setText("authStatus","Ingresá para acceder a tu biblioteca.");return;}
+  const config={
+    history:["Historial","Los videos que empezaste a mirar."],
+    saved:["Ver más tarde","Publicaciones que guardaste para otro momento."],
+    liked:["Videos que te gustan","Tus reacciones positivas."],
+    subscriptions:["Suscripciones","Videos de los canales que seguís."],
+    playlists:["Tus playlists","Colecciones para ordenar videos."],
+    notifications:["Notificaciones","Novedades y actividad de la comunidad."],
+    community:["Comunidad","Publicaciones de los canales de XPapas."],
+    recommended:["Recomendados para vos","Una selección basada en tus categorías vistas y videos populares."],
+    studio:["XPapas Studio","Estadísticas y herramientas para tu canal."]
+  };
+  const [title,description]=config[view]||config.history;xpSetLibrary(title,description);
+  try{
+    if(view==="history"||view==="saved"){
+      if(view==="history")xpAddAction("🧹 Vaciar historial",clearWatchHistory);
+      const table=view==="history"?"watch_history":"saved_videos";
+      const {data,error}=await supabase.from(table).select(view==="history"?"video_id,watched_at":"video_id,created_at").eq("user_id",currentUser.id).order(view==="history"?"watched_at":"created_at",{ascending:false}).limit(100);
+      if(error)throw error;
+      const videos=await xpFetchVideosByIds((data||[]).map(x=>x.video_id));xpRenderLibraryVideos(videos,view==="history"?"Todavía no miraste videos.":"No guardaste videos para después.");
+    }else if(view==="liked"){
+      const {data,error}=await supabase.from("video_reactions").select("video_id").eq("user_id",currentUser.id).eq("reaction","like").limit(100);
+      if(error)throw error;xpRenderLibraryVideos(await xpFetchVideosByIds((data||[]).map(x=>x.video_id)),"Todavía no marcaste videos con Me gusta.");
+    }else if(view==="subscriptions"){
+      const {data,error}=await supabase.from("subscriptions").select("channel_id,created_at").eq("subscriber_id",currentUser.id).order("created_at",{ascending:false});
+      if(error)throw error;
+      const ids=(data||[]).map(x=>x.channel_id);
+      if(!ids.length){xpEmpty("Todavía no seguís ningún canal. Entrá a un perfil y tocá Suscribirme.");return;}
+      const {data:videos,error:ve}=await supabase.from("videos").select("id,title,channel,description,video_url,user_id,views,created_at,category,player_theme,player_photos,player_sound_url").in("user_id",ids).order("created_at",{ascending:false}).limit(100);
+      if(ve)throw ve;xpRenderLibraryVideos(videos||[],"Los canales que seguís todavía no publicaron videos.");
+    }else if(view==="playlists"){
+      xpAddAction("＋ Crear playlist",createPlaylist);
+      const {data,error}=await supabase.from("playlists").select("id,name,description,visibility,created_at").eq("user_id",currentUser.id).order("created_at",{ascending:false});
+      if(error)throw error;
+      const root=document.getElementById("libraryContent");root.replaceChildren();
+      if(!data?.length){xpEmpty("Todavía no creaste playlists. ¡Armá tu primera colección!");return;}
+      data.forEach(pl=>{
+        const row=document.createElement("div");row.className="xp-playlist-card";
+        const info=document.createElement("div");const name=document.createElement("strong");name.textContent="📚 "+pl.name;const desc=document.createElement("small");desc.textContent=(pl.description||"Sin descripción")+" · "+(pl.visibility==="public"?"Pública":"Privada");desc.style.display="block";desc.style.color="#aaa";info.append(name,desc);
+        const actions=document.createElement("div");const open=document.createElement("button");open.className="xp-library-action";open.textContent="Abrir";open.onclick=()=>openPlaylist(pl.id,pl.name);const del=document.createElement("button");del.className="xp-library-action";del.textContent="Eliminar";del.onclick=()=>deletePlaylist(pl.id);actions.append(open,del);row.append(info,actions);root.append(row);
+      });
+    }else if(view==="recommended"){
+      const {data:history,error:he}=await supabase.from("watch_history").select("video_id").eq("user_id",currentUser.id).order("watched_at",{ascending:false}).limit(40);if(he)throw he;
+      const watched=await xpFetchVideosByIds((history||[]).map(x=>x.video_id));const weights={};watched.forEach(v=>{const c=v.category||"Random";weights[c]=(weights[c]||0)+1;});
+      const {data:all,error}=await supabase.from("videos").select("id,title,channel,description,video_url,user_id,views,created_at,category,player_theme,player_photos,player_sound_url").order("created_at",{ascending:false}).limit(100);if(error)throw error;
+      const seen=new Set((history||[]).map(x=>x.video_id));const ranked=(all||[]).filter(v=>!seen.has(v.id)).sort((a,b)=>((weights[b.category||"Random"]||0)*10+(Number(b.views)||0)/100+(new Date(b.created_at).getTime()/1e13))-((weights[a.category||"Random"]||0)*10+(Number(a.views)||0)/100+(new Date(a.created_at).getTime()/1e13)));
+      xpRenderLibraryVideos(ranked,"Todavía no hay suficientes videos para recomendarte. Explorá algunas categorías primero.");
+    }else if(view==="community"){
+      xpAddAction("＋ Crear publicación",createCommunityPost);
+      const {data,error}=await supabase.from("community_posts").select("id,author_id,body,created_at").order("created_at",{ascending:false}).limit(100);
+      if(error)throw error;const root=document.getElementById("libraryContent");root.replaceChildren();
+      if(!data?.length){xpEmpty("Todavía no hay publicaciones. ¡Inaugurá la comunidad!");return;}
+      const ids=[...new Set(data.map(x=>x.author_id))];const {data:profiles}=await supabase.from("profiles").select("id,display_name,username,avatar_url").in("id",ids);const pmap=Object.fromEntries((profiles||[]).map(x=>[x.id,x]));
+      const {data:likes}=currentUser?await supabase.from("community_post_likes").select("post_id,user_id").in("post_id",data.map(x=>x.id)): {data:[]};
+      data.forEach(post=>{const p=pmap[post.author_id]||{};const card=document.createElement("article");card.className="xp-post";const head=document.createElement("div");head.className="xp-post-head";const img=document.createElement("img");img.src=p.avatar_url||COMMENT_AVATAR_FALLBACK;const who=document.createElement("div");const name=document.createElement("strong");name.textContent=p.display_name||"Usuario de XPapas";const meta=document.createElement("small");meta.textContent="@"+(p.username||"usuario")+" · "+new Date(post.created_at).toLocaleString("es-AR");who.append(name,meta);head.append(img,who);const body=document.createElement("p");body.className="xp-post-body";body.textContent=post.body;const actions=document.createElement("div");actions.className="xp-post-actions";const mine=(likes||[]).some(x=>x.post_id===post.id&&x.user_id===currentUser?.id);const count=(likes||[]).filter(x=>x.post_id===post.id).length;const like=document.createElement("button");like.textContent=(mine?"♥":"♡")+" Me gusta · "+count;like.onclick=()=>toggleCommunityLike(post.id,mine);actions.append(like);if(currentUser?.id===post.author_id||isOwner()){const del=document.createElement("button");del.textContent="Eliminar publicación";del.onclick=()=>deleteCommunityPost(post.id);actions.append(del);}card.append(head,body,actions);root.append(card);});
+    }else if(view==="studio"){
+      const root=document.getElementById("libraryContent");root.replaceChildren();
+      const {data:mine,error}=await supabase.from("videos").select("id,title,views,created_at").eq("user_id",currentUser.id).order("created_at",{ascending:false}).limit(100);if(error)throw error;
+      const [subs,comments,reactions]=await Promise.all([supabase.from("subscriptions").select("subscriber_id",{count:"exact",head:true}).eq("channel_id",currentUser.id),supabase.from("video_comments").select("id",{count:"exact",head:true}).in("video_id",(mine||[]).map(v=>v.id).length?(mine||[]).map(v=>v.id):["00000000-0000-0000-0000-000000000000"]),supabase.from("video_reactions").select("video_id",{count:"exact",head:true}).in("video_id",(mine||[]).map(v=>v.id).length?(mine||[]).map(v=>v.id):["00000000-0000-0000-0000-000000000000"]) ]);
+      const views=(mine||[]).reduce((a,v)=>a+(Number(v.views)||0),0);const stats=document.createElement("div");stats.className="xp-studio-grid";[[mine?.length||0,"Videos publicados"],[views.toLocaleString("es-AR"),"Reproducciones acumuladas"],[subs.count??0,"Suscriptores"],[comments.count??0,"Comentarios"],[reactions.count??0,"Reacciones"]].forEach(([n,l])=>{const card=document.createElement("div");card.className="xp-studio-stat";const strong=document.createElement("strong");strong.textContent=n;const span=document.createElement("span");span.textContent=l;card.append(strong,span);stats.append(card);});root.append(stats);
+      const heading=document.createElement("h3");heading.textContent="Tus videos con más reproducciones";root.append(heading);const sorted=[...(mine||[])].sort((a,b)=>(Number(b.views)||0)-(Number(a.views)||0));sorted.forEach(v=>{const row=document.createElement("div");row.className="xp-playlist-card";const title=document.createElement("strong");title.textContent=v.title;const views=document.createElement("span");views.textContent=(Number(v.views)||0).toLocaleString("es-AR")+" vistas";row.append(title,views);root.append(row);});if(!mine?.length)xpEmpty("Todavía no publicaste videos. Cuando subas el primero, tus estadísticas aparecerán acá.");
+    }else if(view==="notifications"){
+      const {data,error}=await supabase.from("notifications").select("id,type,video_id,video_title,actor_id,actor_name,created_at,read_at").eq("recipient_id",currentUser.id).order("created_at",{ascending:false}).limit(80);
+      if(error)throw error;
+      xpAddAction("✓ Marcar todas como leídas",markAllNotificationsRead);
+      const root=document.getElementById("libraryContent");root.replaceChildren();
+      if(!data?.length){xpEmpty("Todavía no tenés notificaciones.");return;}
+      data.forEach(n=>{
+        const row=document.createElement("div");row.className="xp-notification-card"+(n.read_at?"":" unread");
+        const actor=n.actor_name||"Alguien";let message="Hay actividad nueva en XPapas.";
+        if(n.type==="new_subscriber")message=actor+" se suscribió a tu canal.";
+        else if(n.type==="new_video")message=actor+" publicó un video nuevo"+(n.video_title?": "+n.video_title:"")+".";
+        else if(n.type==="comment_reply")message=actor+" respondió tu comentario.";
+        else if(n.type==="video_reaction")message=actor+" reaccionó a tu video.";
+        else if(n.type==="video_comment")message=actor+" comentó tu video.";
+        const content=document.createElement("div");const msg=document.createElement("p");msg.textContent=message;const date=document.createElement("small");date.textContent=new Date(n.created_at).toLocaleString("es-AR");content.append(msg,date);
+        const open=document.createElement("button");open.className="xp-library-action";open.textContent=n.video_id?"Ver":"Leída";open.onclick=async()=>{await supabase.from("notifications").update({read_at:new Date().toISOString()}).eq("id",n.id).eq("recipient_id",currentUser.id);if(n.video_id){const v=await xpFetchVideosByIds([n.video_id]);if(v[0]){showAllVideos();window.openPlayer(v[0]);}}else{row.classList.remove("unread");refreshNotificationBadge();}};
+        row.append(content,open);root.append(row);
+      });
+      refreshNotificationBadge();
+    }
+  }catch(error){document.getElementById("libraryContent").innerHTML=`<div class="xp-empty">No se pudo cargar esta sección.<br><small>${ownerEscape(error.message||"Error desconocido")}</small><br>Revisá el SQL de XPapas 2.4.</div>`;}
+};
+window.clearWatchHistory=async function(){
+  if(!currentUser||!confirm("¿Vaciar todo tu historial de XPapas?"))return;
+  const {error}=await supabase.from("watch_history").delete().eq("user_id",currentUser.id);
+  if(error){alert("No se pudo vaciar el historial: "+error.message);return;}openLibraryView("history");
+};
+window.createPlaylist=async function(){
+  if(!currentUser){openAuth();return;}
+  const name=prompt("Nombre de la playlist (máximo 60 caracteres):");if(!name||!name.trim())return;
+  const description=prompt("Descripción (opcional):")||"";
+  const {error}=await supabase.from("playlists").insert({user_id:currentUser.id,name:name.trim().slice(0,60),description:description.trim().slice(0,180),visibility:"private"});
+  if(error){alert("No se pudo crear: "+error.message);return;}openLibraryView("playlists");
+};
+window.openPlaylist=async function(id,name){
+  xpSetLibrary(name,"Videos guardados en esta playlist.");
+  try{
+    const {data,error}=await supabase.from("playlist_videos").select("video_id,added_at").eq("playlist_id",id).order("added_at",{ascending:false});
+    if(error)throw error;
+    xpRenderLibraryVideos(await xpFetchVideosByIds((data||[]).map(x=>x.video_id)),"Esta playlist todavía está vacía.");
+    xpAddAction("← Volver a playlists",()=>openLibraryView("playlists"));
+  }catch(error){xpEmpty("No se pudo abrir la playlist: "+error.message);}
+};
+window.deletePlaylist=async function(id){
+  if(!confirm("¿Eliminar esta playlist? Los videos originales no se borran."))return;
+  const {error}=await supabase.from("playlists").delete().eq("id",id).eq("user_id",currentUser.id);
+  if(error){alert("No se pudo eliminar: "+error.message);return;}openLibraryView("playlists");
+};
+window.saveCurrentToPlaylist=async function(){
+  if(!currentUser){openAuth();return;}if(!currentVideoData?.id)return;
+  const {data,error}=await supabase.from("playlists").select("id,name").eq("user_id",currentUser.id).order("created_at",{ascending:false});
+  if(error){setText("videoSocialStatus","No se pudieron cargar tus playlists: "+error.message);return;}
+  let playlists=data||[];
+  if(!playlists.length){const name=prompt("Todavía no tenés playlists. ¿Cómo querés llamar a la primera?");if(!name?.trim())return;const created=await supabase.from("playlists").insert({user_id:currentUser.id,name:name.trim().slice(0,60),visibility:"private"}).select("id,name").single();if(created.error){setText("videoSocialStatus","No se pudo crear: "+created.error.message);return;}playlists=[created.data];}
+  const choice=prompt("Elegí una playlist escribiendo su número:\n"+playlists.map((p,i)=>(i+1)+". "+p.name).join("\n"));
+  const selected=playlists[Number(choice)-1];if(!selected)return;
+  const {error:addError}=await supabase.from("playlist_videos").upsert({playlist_id:selected.id,video_id:currentVideoData.id},{onConflict:"playlist_id,video_id"});
+  setText("videoSocialStatus",addError?"No se pudo agregar: "+addError.message:"¡Video agregado a "+selected.name+"!");
+};
+window.refreshSaveLaterButton=async function(){
+  const button=document.getElementById("saveLaterButton");if(!button||!currentUser||!currentVideoData?.id){if(button)button.textContent="⏰ Guardar para después";return;}
+  const {data}=await supabase.from("saved_videos").select("video_id").eq("user_id",currentUser.id).eq("video_id",currentVideoData.id).maybeSingle();
+  button.textContent=data?"✓ Guardado · Quitar":"⏰ Guardar para después";
+};
+window.toggleSaveForLater=async function(){
+  if(!currentUser){openAuth();return;}if(!currentVideoData?.id)return;
+  const {data,error}=await supabase.from("saved_videos").select("video_id").eq("user_id",currentUser.id).eq("video_id",currentVideoData.id).maybeSingle();
+  if(error){setText("videoSocialStatus","No se pudo consultar: "+error.message);return;}
+  const result=data?await supabase.from("saved_videos").delete().eq("user_id",currentUser.id).eq("video_id",currentVideoData.id):await supabase.from("saved_videos").insert({user_id:currentUser.id,video_id:currentVideoData.id});
+  if(result.error){setText("videoSocialStatus","No se pudo guardar: "+result.error.message);return;}
+  await refreshSaveLaterButton();setText("videoSocialStatus",data?"Se quitó de Ver más tarde.":"Guardado en Ver más tarde.");
+};
+window.toggleProfileSubscription=async function(){
+  if(!currentUser||!profileBeingViewed||profileBeingViewed.id===currentUser.id)return;
+  const button=document.getElementById("subscribeProfileButton");button.disabled=true;
+  try{
+    const result=profileSubscriptionState
+      ?await supabase.from("subscriptions").delete().eq("subscriber_id",currentUser.id).eq("channel_id",profileBeingViewed.id)
+      :await supabase.from("subscriptions").insert({subscriber_id:currentUser.id,channel_id:profileBeingViewed.id});
+    if(result.error)throw result.error;
+    profileSubscriptionState=!profileSubscriptionState;button.textContent=profileSubscriptionState?"✓ Suscripto":"＋ Suscribirme";
+    const {count}=await supabase.from("subscriptions").select("subscriber_id",{count:"exact",head:true}).eq("channel_id",profileBeingViewed.id);
+    const stats=document.getElementById("profileStats");stats.textContent=stats.textContent.replace(/· \d+ suscriptores/,"")+" · "+(count??0)+" suscriptores";
+  }catch(error){alert("No se pudo actualizar la suscripción: "+error.message);}
+  finally{button.disabled=false;}
+};
+window.reportCurrentVideo=async function(){
+  if(!currentUser){openAuth();return;}if(!currentVideoData?.id)return;
+  const reason=prompt("Motivo del reporte: spam, contenido engañoso, acoso, derechos de autor u otro.");if(!reason?.trim())return;
+  const details=prompt("Detalles adicionales (opcional):")||"";
+  const {error}=await supabase.from("video_reports").insert({reporter_id:currentUser.id,video_id:currentVideoData.id,reason:reason.trim().slice(0,80),details:details.trim().slice(0,500)});
+  setText("videoSocialStatus",error?"No se pudo enviar el reporte: "+error.message:"Reporte enviado. Gracias por ayudar a cuidar XPapas.");
+};
+window.resolveVideoReport=async function(id){
+  if(!isOwner())return;
+  const {error}=await supabase.from("video_reports").update({status:"resolved"}).eq("id",id);
+  if(error){alert("No se pudo resolver: "+error.message);return;}openOwnerPanel();
+};
+async function refreshNotificationBadge(){
+  const badge=document.getElementById("notificationBadge");if(!badge)return;
+  if(!currentUser){badge.style.display="none";return;}
+  const {count,error}=await supabase.from("notifications").select("id",{count:"exact",head:true}).eq("recipient_id",currentUser.id).is("read_at",null);
+  if(error){badge.style.display="none";return;}
+  badge.textContent=count>99?"99+":String(count||0);badge.style.display=count?"grid":"none";
+}
+function startNotificationRealtime(){
+  if(notificationChannel){supabase.removeChannel(notificationChannel);notificationChannel=null;}
+  if(!currentUser)return;
+  const uid=currentUser.id;
+  notificationChannel=supabase.channel("xpapas-notifications-"+uid).on("postgres_changes",{event:"*",schema:"public",table:"notifications",filter:"recipient_id=eq."+uid},refreshNotificationBadge).subscribe();
+  refreshNotificationBadge();
+}
+window.markAllNotificationsRead=async function(){
+  if(!currentUser)return;
+  const {error}=await supabase.from("notifications").update({read_at:new Date().toISOString()}).eq("recipient_id",currentUser.id).is("read_at",null);
+  if(error){alert("No se pudieron marcar: "+error.message);return;}refreshNotificationBadge();openLibraryView("notifications");
+};
+
+await refreshSession();
+await loadVideos();
+startNotificationRealtime();
+</script>
+
+<!-- Firebase Hosting sigue alojando la página. Supabase gestiona cuentas, videos y catálogo. -->
+
+</body>
+</html>
