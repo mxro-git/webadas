@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>XPapas 🥔</title>
+<link rel="icon" type="image/png" sizes="512x512" href="/favicon.png?v=3.0.2">
+<link rel="apple-touch-icon" href="/favicon.png?v=3.0.2">
+<meta name="theme-color" content="#000000">
+
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}
 body{background:#0f0f0f;color:#fff}
@@ -374,8 +378,27 @@ main{animation:wnMainIn .35s ease both}
       <span class="wn-kicker">XPAPAS · CHANGELOG</span>
       <h1 id="whatsNewTitle">What's New <span>🥔</span></h1>
       <p>Las últimas novedades, mejoras y cambios de XPapas.</p>
-      <div class="wn-meta"><span class="wn-version">VERSIÓN 3.0.0 · PRIME</span><span>23 de noviembre de 2026</span></div>
+      <div class="wn-meta"><span class="wn-version">VERSIÓN 3.0.2 · PRIME</span><span>23 de noviembre de 2026</span></div>
     </div>
+
+    <article class="wn-release">
+      <div class="wn-release-head"><div><span class="wn-tag wn-new">NEW</span><h2>Nuevo icono oficial de XPapas</h2></div><span class="wn-date">v3.0.2 · 23/11/2026</span></div>
+      <p class="wn-intro">XPapas estrena favicon: la papa sobre la X roja, con fondo negro.</p>
+      <ul class="wn-list">
+        <li><span class="wn-icon">🥔</span><div><strong>Identidad visual</strong><small>El nuevo icono aparece en la pestaña del navegador y queda preparado para que los buscadores lo detecten.</small></div></li>
+        <li><span class="wn-icon">📱</span><div><strong>Compatibilidad</strong><small>Se agregaron referencias para navegadores y accesos desde dispositivos móviles.</small></div></li>
+      </ul>
+    </article>
+
+    <article class="wn-release">
+      <div class="wn-release-head"><div><span class="wn-tag wn-improved">FIXED</span><h2>Comentarios y notificaciones reparados</h2></div><span class="wn-date">v3.0.1 · 23/11/2026</span></div>
+      <p class="wn-intro">Se corrigió un problema que impedía publicar comentarios y respuestas cuando XPapas intentaba generar sus notificaciones.</p>
+      <ul class="wn-list">
+        <li><span class="wn-icon">💬</span><div><strong>Publicación de comentarios</strong><small>Los comentarios en videos vuelven a publicarse correctamente.</small></div></li>
+        <li><span class="wn-icon">↩️</span><div><strong>Respuestas a comentarios</strong><small>Se admiten los tipos de notificación <code>video_comment</code> y <code>comment_reply</code> en la base de datos.</small></div></li>
+        <li><span class="wn-icon">🛠️</span><div><strong>Validación de notificaciones</strong><small>Se amplió la restricción de tipos de la tabla notifications en Supabase sin eliminar los tipos anteriores.</small></div></li>
+      </ul>
+    </article>
 
     <article class="wn-release wn-prime-release">
       <div class="wn-release-head"><div><span class="wn-tag wn-new">NEW</span><h2>XPapas 3.0 · PRIME UPDATE</h2></div><span class="wn-date">v3.0.0 · 23/11/2026</span></div>
